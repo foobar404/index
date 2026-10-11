@@ -2,7 +2,6 @@
 
 const STORAGE_KEY = "index.notes.v1";
 const LEGACY_STORAGE_KEYS = ["daymark.notes.v2", "daymark.notes.v1"];
-const NOTE_COLORS = ["default", "rose", "amber", "sage", "sky", "lavender"];
 const icons = {
   pin: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m15.5 4.75 3.75 3.75-2.5 1.25-.5 4.25-1.5 1.5-3.5-3.5-4.5 4.5-.75-.75 4.5-4.5-3.5-3.5 1.5-1.5 4.25-.5 1.25-2.5Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'
 };
@@ -19,19 +18,13 @@ const emptyDescription = document.getElementById("empty-description");
 const emptyAction = document.getElementById("empty-action");
 const editorContent = document.getElementById("editor-content");
 const editorEmpty = document.getElementById("editor-empty");
+const noteBodyEditor = document.getElementById("note-body-editor");
 const noteBodyInput = document.getElementById("note-body");
-const markdownWorkspace = document.getElementById("markdown-workspace");
-const markdownPreview = document.getElementById("markdown-preview");
 const noteDate = document.getElementById("note-date");
 const wordCount = document.getElementById("word-count");
 const pinButton = document.getElementById("toggle-pin");
 const pinLabel = document.getElementById("pin-label");
-const noteColorPicker = document.getElementById("note-color-picker");
-const noteColorButton = document.getElementById("note-color-button");
-const noteColorMenu = document.getElementById("note-color-options");
 const deleteButton = document.getElementById("delete-note");
-const saveIndicator = document.getElementById("save-indicator");
-const saveIndicatorText = document.getElementById("save-indicator-text");
 const localStatus = document.querySelector(".sidebar-footer");
 const localStatusTitle = document.getElementById("local-status-title");
 const localStatusCaption = document.getElementById("local-status-caption");
@@ -39,6 +32,9 @@ const toast = document.getElementById("toast");
 const toastMessage = document.getElementById("toast-message");
 const undoDeleteButton = document.getElementById("undo-delete");
 let noteDrag = null;
+let noteDragTimer = null;
+let noteClickTimer = null;
+let suppressNoteClick = false;
 
 function createStarterNotes() {
   const now = Date.now();
@@ -82,8 +78,7 @@ function isNote(value) {
     && typeof value.createdAt === "string"
     && Number.isFinite(Date.parse(value.createdAt))
     && typeof value.updatedAt === "string"
-    && Number.isFinite(Date.parse(value.updatedAt))
-    && (value.color === undefined || NOTE_COLORS.includes(value.color));
+    && Number.isFinite(Date.parse(value.updatedAt));
 }
 
 function readNotes() {
@@ -127,6 +122,7 @@ const initialState = readNotes();
 let notes = initialState.notes;
 let activeNoteId = notes[0]?.id ?? null;
 let currentFilter = "all";
+let currentNotesLayout = "list";
 let searchQuery = "";
 let persistenceError = initialState.error;
 let saveTimer = null;
@@ -134,6 +130,8 @@ let toastTimer = null;
 let toastHideTimer = null;
 let quickNoteBlurTimer = null;
 let deletedNoteRecord = null;
+let renderedNoteId = null;
+let isMarkdownComposing = false;
 
 function getActiveNote() {
   return notes.find((note) => note.id === activeNoteId) ?? null;
@@ -268,138 +266,247 @@ function escapeHtml(value) {
   })[character]);
 }
 
-function renderInlineMarkdown(source) {
-  const codeSegments = [];
-  let html = escapeHtml(source).replace(/`([^`\n]+)`/g, (match, code) => {
-    const index = codeSegments.push(`<code>${code}</code>`) - 1;
-    return `\u0000${index}\u0000`;
-  });
+function renderMarkdownSourceInline(source) {
+  const fragments = [];
+  const stash = (markup) => {
+    const token = `\uE000${fragments.length}\uE001`;
+    fragments.push(markup);
+    return token;
+  };
+  const symbol = (value) => `<span class="markdown-source-symbol">${escapeHtml(value)}</span>`;
+  let html = escapeHtml(source);
 
   html = html
+    .replace(/`([^`\n]+)`/g, (match, code) => stash(`${symbol("`")}<code>${code}</code>${symbol("`")}`))
+    .replace(/(\*\*|__)(.+?)\1/g, (match, marker, text) => stash(`${symbol(marker)}<strong>${text}</strong>${symbol(marker)}`))
+    .replace(/~~(.+?)~~/g, (match, text) => stash(`${symbol("~~")}<del>${text}</del>${symbol("~~")}`))
+    .replace(/==(.+?)==/g, (match, text) => stash(`${symbol("==")}<mark>${text}</mark>${symbol("==")}`))
+    .replace(/(^|[^\w])\*([^*\n]+)\*(?!\*)/g, (match, before, text) => `${before}${stash(`${symbol("*")}<em>${text}</em>${symbol("*")}`)}`)
+    .replace(/(^|[^\w])_([^_\n]+)_(?!\w)/g, (match, before, text) => `${before}${stash(`${symbol("_")}<em>${text}</em>${symbol("_")}`)}`)
     .replace(/\[([^\]]+)\]\(((?:https?:\/\/|mailto:|#)[^)\s]*)\)/gi,
-      '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
-    .replace(/\*\*(.+?)\*\*|__(.+?)__/g, (match, a, b) => `<strong>${a ?? b}</strong>`)
-    .replace(/~~(.+?)~~/g, "<del>$1</del>")
-    .replace(/==(.+?)==/g, '<mark class="note-highlight">$1</mark>')
-    .replace(/(^|[^\w])\*([^*\n]+)\*(?!\*)/g, "$1<em>$2</em>")
-    .replace(/(^|[^\w])_([^_\n]+)_(?!\w)/g, "$1<em>$2</em>");
+      (match, label, url) => stash(`${symbol("[")}${label}${symbol("](")}<span class="markdown-source-url">${url}</span>${symbol(")")}`));
 
-  return html.replace(/\u0000(\d+)\u0000/g, (match, index) => codeSegments[Number(index)] ?? "");
-}
-
-function renderMarkdownBlocks(lines) {
-  const blocks = [];
-  let paragraph = [];
-  let listItems = [];
-  let listType = "";
-  let quoteLines = [];
-  let codeLines = null;
-
-  const flushParagraph = () => {
-    if (paragraph.length) {
-      blocks.push(`<p>${paragraph.map(renderInlineMarkdown).join("<br>")}</p>`);
-      paragraph = [];
+  const tokenPattern = /\uE000(\d+)\uE001/g;
+  for (let pass = 0; pass <= fragments.length; pass += 1) {
+    let hasTokens = false;
+    html = html.replace(tokenPattern, (match, index) => {
+      hasTokens = true;
+      return fragments[Number(index)] ?? match;
+    });
+    if (!hasTokens) {
+      break;
     }
-  };
-  const flushList = () => {
-    if (listItems.length) {
-      blocks.push(`<${listType}>${listItems.map((item) => `<li>${item}</li>`).join("")}</${listType}>`);
-      listItems = [];
-      listType = "";
-    }
-  };
-  const flushQuote = () => {
-    if (quoteLines.length) {
-      blocks.push(`<blockquote>${quoteLines.map(renderInlineMarkdown).join("<br>")}</blockquote>`);
-      quoteLines = [];
-    }
-  };
-  const flushTextBlocks = () => {
-    flushParagraph();
-    flushList();
-    flushQuote();
-  };
-
-  lines.forEach((line, lineIndex) => {
-    if (codeLines !== null) {
-      if (/^\s*```/.test(line)) {
-        blocks.push(`<pre><code>${escapeHtml(codeLines.join("\n"))}</code></pre>`);
-        codeLines = null;
-      } else {
-        codeLines.push(line);
-      }
-      return;
-    }
-
-    if (/^\s*```/.test(line)) {
-      flushTextBlocks();
-      codeLines = [];
-      return;
-    }
-    if (!line.trim()) {
-      flushTextBlocks();
-      return;
-    }
-
-    const heading = line.match(/^#{1,6}\s+(.+)$/);
-    if (heading) {
-      flushTextBlocks();
-      const level = line.match(/^#+/)[0].length;
-      blocks.push(`<h${level}>${renderInlineMarkdown(heading[1])}</h${level}>`);
-      return;
-    }
-    if (/^(?:-{3,}|\*{3,}|_{3,})$/.test(line.trim())) {
-      flushTextBlocks();
-      blocks.push("<hr>");
-      return;
-    }
-
-    const taskItem = line.match(/^\s*[-+*]\s+\[([ xX])\]\s+(.*)$/);
-    const unorderedItem = line.match(/^\s*[-+*]\s+(.+)$/);
-    const orderedItem = line.match(/^\s*\d+[.)]\s+(.+)$/);
-    if (taskItem || unorderedItem || orderedItem) {
-      flushParagraph();
-      flushQuote();
-      const nextListType = unorderedItem || taskItem ? "ul" : "ol";
-      if (listType && listType !== nextListType) {
-        flushList();
-      }
-      listType = nextListType;
-      if (taskItem) {
-        const checked = taskItem[1].toLowerCase() === "x";
-        listItems.push(`<span class="task-list-item"><input type="checkbox" data-task-line="${lineIndex + 1}"${checked ? " checked" : ""} aria-label="${checked ? "Completed" : "Incomplete"} task">${renderInlineMarkdown(taskItem[2])}</span>`);
-      } else {
-        listItems.push(renderInlineMarkdown((unorderedItem ?? orderedItem)[1]));
-      }
-      return;
-    }
-
-    const quote = line.match(/^\s*>\s?(.*)$/);
-    if (quote) {
-      flushParagraph();
-      flushList();
-      quoteLines.push(quote[1]);
-      return;
-    }
-
-    flushQuote();
-    flushList();
-    paragraph.push(line);
-  });
-
-  flushTextBlocks();
-  if (codeLines !== null) {
-    blocks.push(`<pre><code>${escapeHtml(codeLines.join("\n"))}</code></pre>`);
   }
-  return blocks.join("\n");
+  return html;
 }
 
-function renderMarkdownPreview(content) {
-  const [firstLine = "", ...bodyLines] = content.replace(/\r\n?/g, "\n").split("\n");
-  const title = firstLine.trim().replace(/^#{1,6}\s+/, "");
-  const titleHtml = title ? `<h1 class="rendered-note-title">${renderInlineMarkdown(title)}</h1>` : "";
-  const bodyHtml = renderMarkdownBlocks(bodyLines);
-  markdownPreview.innerHTML = titleHtml + bodyHtml || '<p class="markdown-empty">Nothing to preview yet.</p>';
+function renderMarkdownSource(content) {
+  let insideCodeBlock = false;
+  const sourceLines = content.replace(/\r\n?/g, "\n").split("\n");
+  return sourceLines.map((line) => {
+    if (/^\s*```/.test(line)) {
+      insideCodeBlock = !insideCodeBlock;
+      return `<span class="markdown-source-symbol markdown-source-fence">${escapeHtml(line)}</span>`;
+    }
+    if (insideCodeBlock) {
+      return `<span class="markdown-source-code-block">${escapeHtml(line)}</span>`;
+    }
+
+    const heading = line.match(/^(\s*#{1,6}\s+)(.*)$/);
+    if (heading) {
+      const level = heading[1].match(/#/g).length;
+      return `<span class="markdown-source-symbol">${escapeHtml(heading[1])}</span><span class="markdown-source-heading markdown-source-heading-${level}">${renderMarkdownSourceInline(heading[2])}</span>`;
+    }
+
+    const quote = line.match(/^(\s*>\s?)(.*)$/);
+    if (quote) {
+      return `<span class="markdown-source-symbol">${escapeHtml(quote[1])}</span><span class="markdown-source-quote">${renderMarkdownSourceInline(quote[2])}</span>`;
+    }
+
+    const listPrefix = line.match(/^(\s*(?:[-+*]\s+(?:\[[ xX]\]\s+)?|\d+[.)]\s+|>\s?))(.*)$/);
+    if (listPrefix) {
+      return `<span class="markdown-source-symbol">${escapeHtml(listPrefix[1])}</span><span class="markdown-source-list-item">${renderMarkdownSourceInline(listPrefix[2])}</span>`;
+    }
+
+    if (/^\s*(?:-{3,}|\*{3,}|_{3,})$/.test(line)) {
+      return `<span class="markdown-source-symbol markdown-source-rule">${escapeHtml(line)}</span>`;
+    }
+    return renderMarkdownSourceInline(line);
+  }).join('<br data-markdown-break="">');
+}
+
+function readEditableMarkdown(root) {
+  if (
+    root.childNodes.length === 1
+    && root.firstChild.nodeName === "BR"
+    && !root.firstChild.hasAttribute("data-markdown-break")
+  ) {
+    return "";
+  }
+
+  let content = "";
+  const appendNode = (node, hasNextSibling = false) => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      content += node.nodeValue;
+      return;
+    }
+    if (node.nodeType !== Node.ELEMENT_NODE && node.nodeType !== Node.DOCUMENT_FRAGMENT_NODE) {
+      return;
+    }
+    if (node.nodeName === "BR") {
+      const parent = node.parentElement;
+      const emptyBlockPlaceholder = parent
+        && ["DIV", "P"].includes(parent.nodeName)
+        && parent.childNodes.length === 1
+        && !node.hasAttribute("data-markdown-break");
+      if (!emptyBlockPlaceholder) {
+        content += "\n";
+      }
+      return;
+    }
+
+    const isBlock = ["DIV", "P"].includes(node.nodeName);
+    const children = Array.from(node.childNodes);
+    const emptyBlockPlaceholder = isBlock
+      && children.length === 1
+      && children[0].nodeName === "BR"
+      && !children[0].hasAttribute("data-markdown-break");
+
+    if (isBlock && content.length > 0 && !content.endsWith("\n")) {
+      content += "\n";
+    }
+    children.forEach((child, index) => appendNode(child, index < children.length - 1));
+    if (emptyBlockPlaceholder && hasNextSibling) {
+      content += "\n";
+    }
+  };
+
+  Array.from(root.childNodes).forEach((child, index, children) => {
+    appendNode(child, index < children.length - 1);
+  });
+  return content.replace(/\r\n?/g, "\n");
+}
+
+function getEditableTextOffset(root, node, offset) {
+  const range = document.createRange();
+  range.selectNodeContents(root);
+  range.setEnd(node, offset);
+  return readEditableMarkdown(range.cloneContents()).length;
+}
+
+function getMarkdownEditorSelection() {
+  const selection = window.getSelection();
+  if (!selection?.anchorNode || !selection.focusNode
+    || !noteBodyEditor.contains(selection.anchorNode)
+    || !noteBodyEditor.contains(selection.focusNode)) {
+    return {
+      start: noteBodyInput.selectionStart,
+      end: noteBodyInput.selectionEnd,
+      direction: noteBodyInput.selectionDirection
+    };
+  }
+
+  const anchor = getEditableTextOffset(noteBodyEditor, selection.anchorNode, selection.anchorOffset);
+  const focus = getEditableTextOffset(noteBodyEditor, selection.focusNode, selection.focusOffset);
+  return {
+    start: Math.min(anchor, focus),
+    end: Math.max(anchor, focus),
+    direction: anchor > focus ? "backward" : "forward"
+  };
+}
+
+function syncMarkdownSelectionToInput() {
+  const selection = window.getSelection();
+  if (!selection?.anchorNode || !selection.focusNode
+    || !noteBodyEditor.contains(selection.anchorNode)
+    || !noteBodyEditor.contains(selection.focusNode)) {
+    return;
+  }
+  const offsets = getMarkdownEditorSelection();
+  noteBodyInput.setSelectionRange(offsets.start, offsets.end, offsets.direction);
+}
+
+function findEditablePoint(root, targetOffset) {
+  let textOffset = 0;
+  let point = null;
+  const visit = (node) => {
+    if (point) {
+      return;
+    }
+    if (node.nodeType === Node.TEXT_NODE) {
+      if (targetOffset <= textOffset + node.nodeValue.length) {
+        point = { node, offset: targetOffset - textOffset };
+        return;
+      }
+      textOffset += node.nodeValue.length;
+      return;
+    }
+    if (node.nodeType === Node.ELEMENT_NODE && node.nodeName === "BR") {
+      const parent = node.parentNode;
+      const index = Array.prototype.indexOf.call(parent.childNodes, node);
+      if (targetOffset === textOffset) {
+        point = { node: parent, offset: index };
+        return;
+      }
+      textOffset += 1;
+      if (targetOffset === textOffset) {
+        point = { node: parent, offset: index + 1 };
+      }
+      return;
+    }
+    for (const child of node.childNodes ?? []) {
+      visit(child);
+      if (point) {
+        return;
+      }
+    }
+  };
+
+  visit(root);
+  return point ?? { node: root, offset: root.childNodes.length };
+}
+
+function restoreMarkdownEditorSelection(start, end, direction = "forward") {
+  const contentLength = noteBodyInput.value.length;
+  const startPoint = findEditablePoint(noteBodyEditor, Math.min(start, contentLength));
+  const endPoint = findEditablePoint(noteBodyEditor, Math.min(end, contentLength));
+  const selection = window.getSelection();
+  if (!selection) {
+    return;
+  }
+
+  selection.removeAllRanges();
+  if (direction === "backward" && typeof selection.setBaseAndExtent === "function") {
+    selection.setBaseAndExtent(endPoint.node, endPoint.offset, startPoint.node, startPoint.offset);
+    return;
+  }
+
+  const range = document.createRange();
+  range.setStart(startPoint.node, startPoint.offset);
+  range.setEnd(endPoint.node, endPoint.offset);
+  selection.addRange(range);
+}
+
+function renderMarkdownEditor(content, selection = null) {
+  const scrollTop = noteBodyEditor.scrollTop;
+  const scrollLeft = noteBodyEditor.scrollLeft;
+  noteBodyEditor.innerHTML = renderMarkdownSource(content);
+  noteBodyEditor.scrollTop = scrollTop;
+  noteBodyEditor.scrollLeft = scrollLeft;
+  if (selection) {
+    restoreMarkdownEditorSelection(selection.start, selection.end, selection.direction);
+  }
+}
+
+function replaceMarkdownEditorSelection(replacement) {
+  syncMarkdownSelectionToInput();
+  const start = noteBodyInput.selectionStart;
+  const end = noteBodyInput.selectionEnd;
+  noteBodyInput.setRangeText(replacement, start, end, "end");
+  const caret = start + replacement.length;
+  noteBodyInput.setSelectionRange(caret, caret);
+  noteBodyEditor.focus({ preventScroll: true });
+  noteBodyInput.dispatchEvent(new Event("input", { bubbles: true }));
 }
 
 function formatShortDate(value) {
@@ -428,20 +535,15 @@ function formatFullDate(value) {
 function updatePersistenceStatus(state = "saved") {
   const hasError = Boolean(persistenceError);
   localStatus.classList.toggle("is-error", hasError);
-  saveIndicator.classList.toggle("is-error", hasError);
 
   if (hasError) {
     localStatusTitle.textContent = "Storage needs attention";
     localStatusCaption.textContent = persistenceError;
-    saveIndicatorText.textContent = "Not saved";
-    saveIndicator.title = persistenceError;
     return;
   }
 
   localStatusTitle.textContent = state === "saving" ? "Saving changes..." : "Saved on this device";
   localStatusCaption.textContent = state === "saving" ? "Keeping your latest edits." : "Your notes stay yours.";
-  saveIndicatorText.textContent = state === "saving" ? "Saving..." : "Saved";
-  saveIndicator.title = "Your notes are saved on this device.";
 }
 
 function persistNotes() {
@@ -473,6 +575,16 @@ function setFilter(filter) {
   currentFilter = filter;
   renderFilters();
   renderNotesList();
+}
+
+function setNotesLayout(layout) {
+  currentNotesLayout = layout;
+  notesList.dataset.layout = layout;
+  document.querySelectorAll("[data-notes-layout]").forEach((button) => {
+    const isActive = button.dataset.notesLayout === layout;
+    button.classList.toggle("is-active", isActive);
+    button.setAttribute("aria-pressed", String(isActive));
+  });
 }
 
 function renderFilters() {
@@ -520,6 +632,7 @@ function renderEmptyState() {
 
 function renderNotesList() {
   const matchingNotes = visibleNotes();
+  notesList.dataset.layout = currentNotesLayout;
   notesList.replaceChildren();
   notesList.hidden = matchingNotes.length === 0;
   emptyState.hidden = matchingNotes.length !== 0;
@@ -538,8 +651,6 @@ function renderNotesList() {
 
     const card = document.createElement("div");
     card.className = "note-card";
-    const color = NOTE_COLORS.includes(note.color) ? note.color : "default";
-    card.classList.add(`note-color-${color}`);
     card.classList.toggle("is-selected", note.id === activeNoteId);
     card.dataset.noteId = note.id;
     card.setAttribute("role", "button");
@@ -567,9 +678,9 @@ function renderNotesList() {
     const preview = document.createElement("p");
     preview.className = "note-card-preview";
     const plainText = note.body.replace(/\s+/g, " ").trim();
-    preview.textContent = plainText
-      ? (plainText.length > 105 ? `${plainText.slice(0, 105).trimEnd()}...` : plainText)
-      : "No additional text";
+    const contentLength = note.title.trim().length + plainText.length;
+    card.dataset.contentSize = contentLength < 90 ? "short" : contentLength < 300 ? "medium" : "long";
+    preview.textContent = plainText || "No additional text";
 
     card.append(heading, preview);
 
@@ -577,7 +688,6 @@ function renderNotesList() {
     controls.className = "note-card-move-controls";
     controls.setAttribute("role", "group");
     controls.setAttribute("aria-label", `Reorder ${note.title.trim() || "Untitled note"}`);
-    const noteIndex = matchingNotes.indexOf(note);
     const dragHandle = document.createElement("button");
     dragHandle.className = "move-note-button drag-note-handle";
     dragHandle.type = "button";
@@ -586,21 +696,6 @@ function renderNotesList() {
     dragHandle.title = "Drag to reorder";
     dragHandle.innerHTML = '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><circle cx="5" cy="4" r="1"/><circle cx="11" cy="4" r="1"/><circle cx="5" cy="8" r="1"/><circle cx="11" cy="8" r="1"/><circle cx="5" cy="12" r="1"/><circle cx="11" cy="12" r="1"/></svg>';
     controls.append(dragHandle);
-
-    [
-      { direction: "up", disabled: noteIndex === 0, path: "m6 14 6-6 6 6" },
-      { direction: "down", disabled: noteIndex === matchingNotes.length - 1, path: "m6 10 6 6 6-6" }
-    ].forEach(({ direction, disabled, path }) => {
-      const moveButton = document.createElement("button");
-      moveButton.className = "move-note-button";
-      moveButton.type = "button";
-      moveButton.dataset.moveNoteId = note.id;
-      moveButton.dataset.direction = direction;
-      moveButton.disabled = disabled;
-      moveButton.setAttribute("aria-label", `Move ${note.title.trim() || "Untitled note"} ${direction}`);
-      moveButton.innerHTML = `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="${path}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-      controls.append(moveButton);
-    });
 
     item.append(card, controls);
     fragment.append(item);
@@ -614,43 +709,33 @@ function updateWordCount() {
   wordCount.textContent = `${words} ${words === 1 ? "word" : "words"}`;
 }
 
-function renderEditor() {
+function renderEditor(selection = null) {
   const note = getActiveNote();
   editorContent.hidden = note === null;
   editorEmpty.hidden = note !== null;
   pinButton.disabled = note === null;
-  noteColorButton.disabled = note === null;
   deleteButton.disabled = note === null;
-  noteColorMenu.hidden = true;
-  noteColorButton.setAttribute("aria-expanded", "false");
 
   if (!note) {
+    renderedNoteId = null;
     pinButton.classList.remove("is-pinned");
     pinButton.setAttribute("aria-pressed", "false");
     return;
   }
 
-  const color = NOTE_COLORS.includes(note.color) ? note.color : "default";
-  editorContent.classList.remove(...NOTE_COLORS.map((value) => `note-color-${value}`));
-  editorContent.classList.add(`note-color-${color}`);
-  const colorIndicator = noteColorButton.querySelector(".note-color-indicator");
-  colorIndicator.classList.remove(...NOTE_COLORS.map((value) => `note-color-swatch-${value}`));
-  colorIndicator.classList.add(`note-color-swatch-${color}`);
-  document.querySelectorAll("[data-note-color]").forEach((button) => {
-    button.setAttribute("aria-pressed", String(button.dataset.noteColor === color));
-  });
-
-  if (document.activeElement !== noteBodyInput) {
+  if (renderedNoteId !== note.id || document.activeElement !== noteBodyEditor) {
     noteBodyInput.value = noteContent(note);
   }
+  renderedNoteId = note.id;
 
   noteDate.dateTime = note.updatedAt;
   noteDate.textContent = `Edited ${formatShortDate(note.updatedAt).toLocaleLowerCase()}`;
   pinButton.classList.toggle("is-pinned", note.pinned);
   pinButton.setAttribute("aria-pressed", String(note.pinned));
+  pinButton.setAttribute("aria-label", note.pinned ? "Unpin note" : "Pin note");
   pinLabel.textContent = note.pinned ? "Pinned" : "Pin";
   updateWordCount();
-  renderMarkdownPreview(noteBodyInput.value);
+  renderMarkdownEditor(noteBodyInput.value, selection);
 }
 
 function render() {
@@ -661,6 +746,7 @@ function render() {
 }
 
 function wrapSelectedText(marker) {
+  syncMarkdownSelectionToInput();
   const start = noteBodyInput.selectionStart;
   const end = noteBodyInput.selectionEnd;
   const selectedText = noteBodyInput.value.slice(start, end);
@@ -671,11 +757,12 @@ function wrapSelectedText(marker) {
   } else {
     noteBodyInput.setSelectionRange(start + marker.length, start + marker.length + selectedText.length);
   }
-  noteBodyInput.focus({ preventScroll: true });
+  noteBodyEditor.focus({ preventScroll: true });
   noteBodyInput.dispatchEvent(new Event("input", { bubbles: true }));
 }
 
 function applyLineFormatting(action) {
+  syncMarkdownSelectionToInput();
   let value = noteBodyInput.value;
   let selectionStart = noteBodyInput.selectionStart;
   let selectionEnd = noteBodyInput.selectionEnd;
@@ -732,7 +819,7 @@ function applyLineFormatting(action) {
     (line.trim() || lines.length === 1) && !(lineStart === 0 && index === 0)
   ));
   if (!eligibleLines.length) {
-    noteBodyInput.focus({ preventScroll: true });
+    noteBodyEditor.focus({ preventScroll: true });
     return;
   }
 
@@ -764,11 +851,12 @@ function applyLineFormatting(action) {
     const caret = lineStart + insertedPrefix;
     noteBodyInput.setSelectionRange(caret, caret);
   }
-  noteBodyInput.focus({ preventScroll: true });
+  noteBodyEditor.focus({ preventScroll: true });
   noteBodyInput.dispatchEvent(new Event("input", { bubbles: true }));
 }
 
 function insertLink() {
+  syncMarkdownSelectionToInput();
   const start = noteBodyInput.selectionStart;
   const end = noteBodyInput.selectionEnd;
   const selectedText = noteBodyInput.value.slice(start, end);
@@ -778,7 +866,7 @@ function insertLink() {
   const urlEnd = urlStart + "https://example.com".length;
   noteBodyInput.setRangeText(replacement, start, end, "end");
   noteBodyInput.setSelectionRange(urlStart, urlEnd);
-  noteBodyInput.focus({ preventScroll: true });
+  noteBodyEditor.focus({ preventScroll: true });
   noteBodyInput.dispatchEvent(new Event("input", { bubbles: true }));
 }
 
@@ -788,16 +876,6 @@ function applyMarkdownAction(action) {
     return;
   }
   applyLineFormatting(action);
-}
-
-function setEditorView(view) {
-  markdownWorkspace.dataset.mode = view;
-  editorContent.dataset.editorMode = view;
-  document.querySelectorAll("[data-editor-view]").forEach((button) => {
-    const isActive = button.dataset.editorView === view;
-    button.classList.toggle("is-active", isActive);
-    button.setAttribute("aria-pressed", String(isActive));
-  });
 }
 
 function isMobileViewport() {
@@ -859,6 +937,12 @@ function submitQuickNote() {
   notes.unshift(createNoteRecord(content));
   quickNoteInput.value = "";
   render();
+
+  if ("serviceWorker" in navigator && window.isSecureContext && location.protocol !== "file:") {
+    navigator.serviceWorker.register("./service-worker.js").catch((error) => {
+      console.error("Index service worker registration failed.", error);
+    });
+  }
   persistNotes();
   return true;
 }
@@ -874,7 +958,10 @@ function createNote(content = "") {
   appShell.dataset.view = "editor";
   render();
   persistNotes();
-  window.requestAnimationFrame(() => noteBodyInput.focus());
+  window.requestAnimationFrame(() => {
+    noteBodyEditor.focus();
+    restoreMarkdownEditorSelection(noteBodyInput.value.length, noteBodyInput.value.length);
+  });
 }
 
 function selectNote(noteId) {
@@ -886,21 +973,6 @@ function selectNote(noteId) {
     appShell.dataset.view = "editor";
   }
   render();
-}
-
-function moveNote(noteId, direction) {
-  const matchingNotes = visibleNotes();
-  const visibleIndex = matchingNotes.findIndex((note) => note.id === noteId);
-  const targetNote = matchingNotes[visibleIndex + (direction === "up" ? -1 : 1)];
-  if (visibleIndex === -1 || !targetNote) {
-    return;
-  }
-
-  const sourceIndex = notes.findIndex((note) => note.id === noteId);
-  const targetIndex = notes.findIndex((note) => note.id === targetNote.id);
-  [notes[sourceIndex], notes[targetIndex]] = [notes[targetIndex], notes[sourceIndex]];
-  renderNotesList();
-  persistNotes();
 }
 
 function reorderNote(sourceId, targetId, position = "before") {
@@ -966,12 +1038,17 @@ document.querySelectorAll("[data-filter]").forEach((button) => {
   button.addEventListener("click", () => setFilter(button.dataset.filter));
 });
 
+document.querySelectorAll("[data-notes-layout]").forEach((button) => {
+  button.addEventListener("click", () => setNotesLayout(button.dataset.notesLayout));
+});
+
 document.getElementById("create-from-empty").addEventListener("click", createNote);
 
 notesList.addEventListener("click", (event) => {
-  const moveButton = event.target.closest("[data-move-note-id]");
-  if (moveButton) {
-    moveNote(moveButton.dataset.moveNoteId, moveButton.dataset.direction);
+  if (suppressNoteClick) {
+    suppressNoteClick = false;
+    window.clearTimeout(noteClickTimer);
+    noteClickTimer = null;
     return;
   }
   const card = event.target.closest("[data-note-id]");
@@ -991,6 +1068,10 @@ notesList.addEventListener("keydown", (event) => {
 });
 
 function clearNoteDrag() {
+  if (noteDragTimer !== null) {
+    window.clearTimeout(noteDragTimer);
+    noteDragTimer = null;
+  }
   noteDrag?.item.classList.remove("is-dragging");
   notesList.querySelectorAll(".is-drop-before, .is-drop-after").forEach((item) => {
     item.classList.remove("is-drop-before", "is-drop-after");
@@ -998,46 +1079,41 @@ function clearNoteDrag() {
   noteDrag = null;
 }
 
-notesList.addEventListener("pointerdown", (event) => {
-  const handle = event.target.closest("[data-drag-note-id]");
-  const item = handle?.closest("[data-note-item-id]");
-  if (!handle || !item || event.button !== 0) {
-    return;
-  }
+function startNoteDrag(item, input, pointerId, clientX, clientY) {
   noteDrag = {
-    handle,
     item,
-    pointerId: event.pointerId,
+    input,
+    pointerId,
     noteId: item.dataset.noteItemId,
-    startX: event.clientX,
-    startY: event.clientY,
+    startX: clientX,
+    startY: clientY,
     active: false,
     targetId: null,
     position: "before"
   };
-  handle.setPointerCapture(event.pointerId);
-});
+}
 
-notesList.addEventListener("pointermove", (event) => {
-  if (!noteDrag || event.pointerId !== noteDrag.pointerId) {
-    return;
-  }
-  if (!noteDrag.active && Math.hypot(event.clientX - noteDrag.startX, event.clientY - noteDrag.startY) < 6) {
+function activateNoteDrag() {
+  if (!noteDrag) {
     return;
   }
   noteDrag.active = true;
   noteDrag.item.classList.add("is-dragging");
-  event.preventDefault();
+}
 
+function updateNoteDrag(clientX, clientY) {
+  if (!noteDrag?.active) {
+    return;
+  }
   const scrollBounds = notesList.parentElement.getBoundingClientRect();
   const scrollEdge = 42;
-  if (event.clientY < scrollBounds.top + scrollEdge) {
-    notesList.parentElement.scrollTop -= Math.ceil((scrollBounds.top + scrollEdge - event.clientY) / 4);
-  } else if (event.clientY > scrollBounds.bottom - scrollEdge) {
-    notesList.parentElement.scrollTop += Math.ceil((event.clientY - (scrollBounds.bottom - scrollEdge)) / 4);
+  if (clientY < scrollBounds.top + scrollEdge) {
+    notesList.parentElement.scrollTop -= Math.ceil((scrollBounds.top + scrollEdge - clientY) / 4);
+  } else if (clientY > scrollBounds.bottom - scrollEdge) {
+    notesList.parentElement.scrollTop += Math.ceil((clientY - (scrollBounds.bottom - scrollEdge)) / 4);
   }
 
-  const target = document.elementFromPoint(event.clientX, event.clientY)?.closest("[data-note-item-id]");
+  const target = document.elementFromPoint(clientX, clientY)?.closest("[data-note-item-id]");
   notesList.querySelectorAll(".is-drop-before, .is-drop-after").forEach((item) => {
     item.classList.remove("is-drop-before", "is-drop-after");
   });
@@ -1048,22 +1124,129 @@ notesList.addEventListener("pointermove", (event) => {
 
   const bounds = target.getBoundingClientRect();
   noteDrag.targetId = target.dataset.noteItemId;
-  noteDrag.position = event.clientY > bounds.top + bounds.height / 2 ? "after" : "before";
+  const horizontalDrop = notesList.dataset.layout === "grid"
+    && Math.abs(clientX - (bounds.left + bounds.width / 2)) > Math.abs(clientY - (bounds.top + bounds.height / 2));
+  noteDrag.position = horizontalDrop
+    ? (clientX > bounds.left + bounds.width / 2 ? "after" : "before")
+    : (clientY > bounds.top + bounds.height / 2 ? "after" : "before");
   target.classList.add(noteDrag.position === "after" ? "is-drop-after" : "is-drop-before");
+}
+
+function finishNoteDrag() {
+  const drag = noteDrag;
+  clearNoteDrag();
+  if (!drag?.active) {
+    return;
+  }
+  suppressNoteClick = true;
+  if (noteClickTimer !== null) {
+    window.clearTimeout(noteClickTimer);
+  }
+  noteClickTimer = window.setTimeout(() => {
+    suppressNoteClick = false;
+    noteClickTimer = null;
+  }, 500);
+  if (drag.targetId) {
+    reorderNote(drag.noteId, drag.targetId, drag.position);
+  }
+}
+
+function resetNoteClickSuppression() {
+  if (!suppressNoteClick) {
+    return;
+  }
+  suppressNoteClick = false;
+  window.clearTimeout(noteClickTimer);
+  noteClickTimer = null;
+}
+
+notesList.addEventListener("pointerdown", (event) => {
+  resetNoteClickSuppression();
+  if (event.pointerType === "touch" || event.button !== 0) {
+    return;
+  }
+  const handle = event.target.closest("[data-drag-note-id]");
+  const item = handle?.closest("[data-note-item-id]");
+  if (!handle || !item) {
+    return;
+  }
+  startNoteDrag(item, "pointer", event.pointerId, event.clientX, event.clientY);
+  handle.setPointerCapture(event.pointerId);
+});
+
+notesList.addEventListener("pointermove", (event) => {
+  if (!noteDrag || noteDrag.input !== "pointer" || event.pointerId !== noteDrag.pointerId) {
+    return;
+  }
+  if (!noteDrag.active && Math.hypot(event.clientX - noteDrag.startX, event.clientY - noteDrag.startY) < 6) {
+    return;
+  }
+  activateNoteDrag();
+  event.preventDefault();
+  updateNoteDrag(event.clientX, event.clientY);
 });
 
 notesList.addEventListener("pointerup", (event) => {
-  if (!noteDrag || event.pointerId !== noteDrag.pointerId) {
-    return;
-  }
-  const { noteId, targetId, position, active } = noteDrag;
-  clearNoteDrag();
-  if (active && targetId) {
-    reorderNote(noteId, targetId, position);
+  if (noteDrag?.input === "pointer" && event.pointerId === noteDrag.pointerId) {
+    finishNoteDrag();
   }
 });
 
-notesList.addEventListener("pointercancel", clearNoteDrag);
+notesList.addEventListener("pointercancel", () => {
+  if (noteDrag?.input === "pointer") {
+    clearNoteDrag();
+  }
+});
+
+notesList.addEventListener("touchstart", (event) => {
+  resetNoteClickSuppression();
+  if (event.touches.length !== 1 || noteDrag || event.target.closest("button")) {
+    return;
+  }
+  const item = event.target.closest("[data-note-item-id]");
+  if (!item) {
+    return;
+  }
+  const touch = event.touches[0];
+  startNoteDrag(item, "touch", touch.identifier, touch.clientX, touch.clientY);
+  const pendingDrag = noteDrag;
+  noteDragTimer = window.setTimeout(() => {
+    if (noteDrag === pendingDrag) {
+      activateNoteDrag();
+    }
+    noteDragTimer = null;
+  }, 250);
+}, { passive: true });
+
+notesList.addEventListener("touchmove", (event) => {
+  if (noteDrag?.input !== "touch") {
+    return;
+  }
+  const touch = Array.from(event.touches).find((item) => item.identifier === noteDrag.pointerId);
+  if (!touch) {
+    return;
+  }
+  if (!noteDrag.active) {
+    if (Math.hypot(touch.clientX - noteDrag.startX, touch.clientY - noteDrag.startY) > 8) {
+      clearNoteDrag();
+    }
+    return;
+  }
+  event.preventDefault();
+  updateNoteDrag(touch.clientX, touch.clientY);
+}, { passive: false });
+
+notesList.addEventListener("touchend", (event) => {
+  if (noteDrag?.input === "touch" && Array.from(event.changedTouches).some((touch) => touch.identifier === noteDrag.pointerId)) {
+    finishNoteDrag();
+  }
+});
+
+notesList.addEventListener("touchcancel", () => {
+  if (noteDrag?.input === "touch") {
+    clearNoteDrag();
+  }
+});
 
 searchInput.addEventListener("input", () => {
   searchQuery = searchInput.value;
@@ -1072,20 +1255,13 @@ searchInput.addEventListener("input", () => {
 });
 
 document.querySelectorAll("[data-markdown-wrap]").forEach((button) => {
+  button.addEventListener("mousedown", (event) => event.preventDefault());
   button.addEventListener("click", () => wrapSelectedText(button.dataset.markdownWrap));
 });
 
 document.querySelectorAll("[data-markdown-action]").forEach((button) => {
+  button.addEventListener("mousedown", (event) => event.preventDefault());
   button.addEventListener("click", () => applyMarkdownAction(button.dataset.markdownAction));
-});
-
-document.querySelectorAll("[data-editor-view]").forEach((button) => {
-  button.addEventListener("click", () => {
-    setEditorView(button.dataset.editorView);
-    if (button.dataset.editorView === "write") {
-      noteBodyInput.focus({ preventScroll: true });
-    }
-  });
 });
 
 clearSearchButton.addEventListener("click", () => {
@@ -1109,7 +1285,7 @@ emptyAction.addEventListener("click", () => {
   createNote();
 });
 
-noteBodyInput.addEventListener("input", () => {
+function updateActiveNoteBody(selection, renderEditorImmediately = true) {
   const note = getActiveNote();
   if (!note) {
     return;
@@ -1117,29 +1293,79 @@ noteBodyInput.addEventListener("input", () => {
   Object.assign(note, splitNoteContent(noteBodyInput.value));
   note.updatedAt = new Date().toISOString();
   renderNotesList();
-  renderEditor();
+  if (renderEditorImmediately) {
+    renderEditor(selection);
+  } else {
+    updateWordCount();
+  }
   scheduleSave();
+}
+
+function syncMarkdownEditorInput(renderEditorImmediately = true) {
+  const content = readEditableMarkdown(noteBodyEditor);
+  const selection = getMarkdownEditorSelection();
+  const start = Math.min(selection.start, content.length);
+  const end = Math.min(selection.end, content.length);
+  noteBodyInput.value = content;
+  noteBodyInput.setSelectionRange(start, end, selection.direction);
+  const safeSelection = { start, end, direction: selection.direction };
+
+  if (renderEditorImmediately) {
+    noteBodyInput.dispatchEvent(new Event("input", { bubbles: true }));
+  } else {
+    updateActiveNoteBody(safeSelection, false);
+  }
+}
+
+noteBodyEditor.addEventListener("input", (event) => {
+  syncMarkdownEditorInput(!isMarkdownComposing && !event.isComposing);
 });
 
-markdownPreview.addEventListener("change", (event) => {
-  const checkbox = event.target.closest("input[data-task-line]");
-  if (!checkbox) {
+noteBodyEditor.addEventListener("compositionstart", () => {
+  isMarkdownComposing = true;
+});
+
+noteBodyEditor.addEventListener("compositionend", () => {
+  isMarkdownComposing = false;
+  window.requestAnimationFrame(() => syncMarkdownEditorInput());
+});
+
+noteBodyEditor.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter" || event.isComposing || isMarkdownComposing) {
     return;
   }
+  event.preventDefault();
+  replaceMarkdownEditorSelection("\n");
+});
 
-  const lineIndex = Number(checkbox.dataset.taskLine);
-  const lines = noteBodyInput.value.replace(/\r\n?/g, "\n").split("\n");
-  const task = lines[lineIndex]?.match(/^(\s*[-+*]\s+\[)([ xX])(\]\s+.*)$/);
-  if (!Number.isInteger(lineIndex) || !task) {
-    console.error("Unable to update the selected Markdown checklist item.");
-    renderMarkdownPreview(noteBodyInput.value);
+noteBodyEditor.addEventListener("beforeinput", (event) => {
+  if (
+    (event.inputType === "insertParagraph" || event.inputType === "insertLineBreak")
+    && !event.isComposing
+    && !isMarkdownComposing
+  ) {
+    event.preventDefault();
+    replaceMarkdownEditorSelection("\n");
+  }
+});
+
+noteBodyEditor.addEventListener("paste", (event) => {
+  const content = event.clipboardData?.getData("text/plain");
+  if (content === undefined) {
     return;
   }
+  event.preventDefault();
+  replaceMarkdownEditorSelection(content.replace(/\r\n?/g, "\n"));
+});
 
-  lines[lineIndex] = `${task[1]}${checkbox.checked ? "x" : " "}${task[3]}`;
-  noteBodyInput.value = lines.join("\n");
-  noteBodyInput.dispatchEvent(new Event("input", { bubbles: true }));
-  markdownPreview.querySelector(`[data-task-line="${lineIndex}"]`)?.focus({ preventScroll: true });
+document.addEventListener("selectionchange", syncMarkdownSelectionToInput);
+
+noteBodyInput.addEventListener("input", () => {
+  updateActiveNoteBody({
+    start: noteBodyInput.selectionStart,
+    end: noteBodyInput.selectionEnd,
+    direction: noteBodyInput.selectionDirection
+  });
 });
 
 quickNoteInput.addEventListener("focus", () => {
@@ -1169,35 +1395,6 @@ pinButton.addEventListener("click", () => {
   persistNotes();
 });
 
-noteColorButton.addEventListener("click", () => {
-  if (noteColorButton.disabled) {
-    return;
-  }
-  noteColorMenu.hidden = !noteColorMenu.hidden;
-  noteColorButton.setAttribute("aria-expanded", String(!noteColorMenu.hidden));
-});
-
-noteColorMenu.addEventListener("click", (event) => {
-  const option = event.target.closest("[data-note-color]");
-  const note = getActiveNote();
-  if (!option || !note || !NOTE_COLORS.includes(option.dataset.noteColor)) {
-    return;
-  }
-  note.color = option.dataset.noteColor;
-  noteColorMenu.hidden = true;
-  noteColorButton.setAttribute("aria-expanded", "false");
-  render();
-  persistNotes();
-  noteColorButton.focus({ preventScroll: true });
-});
-
-document.addEventListener("click", (event) => {
-  if (!noteColorPicker.contains(event.target)) {
-    noteColorMenu.hidden = true;
-    noteColorButton.setAttribute("aria-expanded", "false");
-  }
-});
-
 deleteButton.addEventListener("click", deleteActiveNote);
 undoDeleteButton.addEventListener("click", undoDelete);
 document.getElementById("dismiss-toast").addEventListener("click", hideToast);
@@ -1219,12 +1416,6 @@ window.addEventListener("keydown", (event) => {
     event.preventDefault();
     searchInput.focus();
     searchInput.select();
-    return;
-  }
-  if (event.key === "Escape" && !noteColorMenu.hidden) {
-    noteColorMenu.hidden = true;
-    noteColorButton.setAttribute("aria-expanded", "false");
-    noteColorButton.focus({ preventScroll: true });
     return;
   }
   if (event.key === "Escape" && isMobileViewport() && appShell.dataset.view === "editor") {

@@ -1,0 +1,19 @@
+{
+  "id": "./",
+  "name": "Index — Your notes",
+  "short_name": "Index",
+  "description": "A calm, simple place to keep your notes.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6f5f2",
+  "theme_color": "#f6f5f2",
+  "icons": [
+    {
+      "src": "./public/pwa-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
