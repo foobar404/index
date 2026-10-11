@@ -10,9 +10,9 @@
   "theme_color": "#f6f5f2",
   "icons": [
     {
-      "src": "./public/pwa-icon.svg",
+      "src": "./public/favicon.png",
       "sizes": "any",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ]
