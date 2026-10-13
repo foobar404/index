@@ -2,6 +2,67 @@
 
 const STORAGE_KEY = "index.notes.v1";
 const LEGACY_STORAGE_KEYS = ["daymark.notes.v2", "daymark.notes.v1"];
+const GOOGLE_FONTS = {
+  default: { label: "System default", family: "", css: "" },
+  inter: { label: "Inter", family: "Inter", css: '"Inter", sans-serif' },
+  roboto: { label: "Roboto", family: "Roboto", css: '"Roboto", sans-serif' },
+  "open-sans": { label: "Open Sans", family: "Open Sans", css: '"Open Sans", sans-serif' },
+  lato: { label: "Lato", family: "Lato", css: '"Lato", sans-serif' },
+  montserrat: { label: "Montserrat", family: "Montserrat", css: '"Montserrat", sans-serif' },
+  poppins: { label: "Poppins", family: "Poppins", css: '"Poppins", sans-serif' },
+  nunito: { label: "Nunito", family: "Nunito", css: '"Nunito", sans-serif' },
+  "source-sans-3": { label: "Source Sans 3", family: "Source Sans 3", css: '"Source Sans 3", sans-serif' },
+  "work-sans": { label: "Work Sans", family: "Work Sans", css: '"Work Sans", sans-serif' },
+  "dm-sans": { label: "DM Sans", family: "DM Sans", css: '"DM Sans", sans-serif' },
+  manrope: { label: "Manrope", family: "Manrope", css: '"Manrope", sans-serif' },
+  raleway: { label: "Raleway", family: "Raleway", css: '"Raleway", sans-serif' },
+  merriweather: { label: "Merriweather", family: "Merriweather", css: '"Merriweather", serif' },
+  lora: { label: "Lora", family: "Lora", css: '"Lora", serif' },
+  "playfair-display": { label: "Playfair Display", family: "Playfair Display", css: '"Playfair Display", serif' },
+  "libre-baskerville": { label: "Libre Baskerville", family: "Libre Baskerville", css: '"Libre Baskerville", serif' },
+  "pt-sans": { label: "PT Sans", family: "PT Sans", css: '"PT Sans", sans-serif' },
+  ubuntu: { label: "Ubuntu", family: "Ubuntu", css: '"Ubuntu", sans-serif' },
+  "roboto-mono": { label: "Roboto Mono", family: "Roboto Mono", css: '"Roboto Mono", monospace' },
+  "fira-code": { label: "Fira Code", family: "Fira Code", css: '"Fira Code", monospace' },
+  inconsolata: { label: "Inconsolata", family: "Inconsolata", css: '"Inconsolata", monospace' },
+  "space-grotesk": { label: "Space Grotesk", family: "Space Grotesk", css: '"Space Grotesk", sans-serif' },
+  quicksand: { label: "Quicksand", family: "Quicksand", css: '"Quicksand", sans-serif' }
+};
+const NOTE_THEMES = {
+  paper: { label: "Paper", background: "#ffffff", text: "#40463f", accent: "#70826e", subtext: "#f1f3ee" },
+  cream: { label: "Cream", background: "#fff8e9", text: "#54432e", accent: "#91724c", subtext: "#f5eddc" },
+  sage: { label: "Sage", background: "#edf4eb", text: "#334b38", accent: "#587760", subtext: "#e0eadf" },
+  ocean: { label: "Ocean", background: "#dcecf8", text: "#263f57", accent: "#2e7898", subtext: "#c7e0ef" },
+  lavender: { label: "Lavender", background: "#f0eafb", text: "#4b3b67", accent: "#8b6ca8", subtext: "#e6dcf4" },
+  rose: { label: "Rose", background: "#fae9ed", text: "#5a3540", accent: "#b15c71", subtext: "#f4dce2" },
+  peach: { label: "Peach", background: "#fff0e4", text: "#5b3b2b", accent: "#c97949", subtext: "#ffe0ca" },
+  slate: { label: "Slate", background: "#e9eef2", text: "#35434d", accent: "#697f90", subtext: "#dce4ea" },
+  sunshine: { label: "Sunshine", background: "#fff6cb", text: "#534817", accent: "#978315", subtext: "#f5e99c" },
+  mint: { label: "Mint", background: "#e6f4ee", text: "#2e4d44", accent: "#4e8e75", subtext: "#d2eee1" },
+  forest: { label: "Forest", background: "#e5eee7", text: "#314839", accent: "#5e826b", subtext: "#d6e6d9" },
+  cocoa: { label: "Cocoa", background: "#f1e8e0", text: "#50392d", accent: "#9a7056", subtext: "#e9d8c8" },
+  acid: { label: "Acid", background: "#efff00", text: "#252b00", accent: "#596400", subtext: "#d8e800" },
+  limeade: { label: "Limeade", background: "#baff3a", text: "#20330e", accent: "#4b7813", subtext: "#a7e526" },
+  slime: { label: "Toxic Slime", background: "#a6ff00", text: "#1b2e00", accent: "#4c7700", subtext: "#94e600" },
+  bubblegum: { label: "Bubblegum", background: "#ffb3ee", text: "#4c1744", accent: "#bc4e9c", subtext: "#f394d9" },
+  vaporwave: { label: "Vaporwave", background: "#f4b2ff", text: "#3e1454", accent: "#a246c3", subtext: "#e69cf5" },
+  "arcade-blue": { label: "Arcade Blue", background: "#52e5ff", text: "#083348", accent: "#007d98", subtext: "#b0f5ff" },
+  "coral-pop": { label: "Coral Pop", background: "#ff715b", text: "#40150e", accent: "#a4392a", subtext: "#ffc2b7" },
+  highlighter: { label: "Highlighter", background: "#fff900", text: "#292600", accent: "#776f00", subtext: "#eee600" },
+  midnight: { label: "Midnight", background: "#171923", text: "#f3f0fa", accent: "#b9a9ff", subtext: "#292b3a" },
+  oled: { label: "OLED", background: "#0b0d10", text: "#f3f5f7", accent: "#b0c0d2", subtext: "#20242a" },
+  "deep-ocean": { label: "Deep Ocean", background: "#092b3a", text: "#e2f6ff", accent: "#68d4ed", subtext: "#153b4d" },
+  ultraviolet: { label: "Ultraviolet", background: "#1b1544", text: "#f0eaff", accent: "#b6a0ff", subtext: "#2a235f" },
+  cyberpunk: { label: "Cyberpunk", background: "#241126", text: "#ffe1fc", accent: "#ff4fd8", subtext: "#421b3f" },
+  "forest-night": { label: "Forest Night", background: "#15251d", text: "#e3f4e7", accent: "#9de0aa", subtext: "#233b2d" },
+  "cobalt-night": { label: "Cobalt Night", background: "#11204a", text: "#ecf3ff", accent: "#90b2ff", subtext: "#1d3264" },
+  ember: { label: "Ember", background: "#351d17", text: "#ffe6d9", accent: "#ff9d6f", subtext: "#542b1f" },
+  "grape-soda": { label: "Grape Soda", background: "#31124a", text: "#f1d7ff", accent: "#d79aff", subtext: "#4a1e68" },
+  "cherry-cola": { label: "Cherry Cola", background: "#391622", text: "#ffdee7", accent: "#ff8dab", subtext: "#571e32" },
+  terminal: { label: "Terminal Green", background: "#061b13", text: "#b4ffc8", accent: "#49ef89", subtext: "#0c3022" },
+  "lava-lamp": { label: "Lava Lamp", background: "#2b170a", text: "#fff0c2", accent: "#ffbf47", subtext: "#482b12" }
+};
+const DEFAULT_NOTE_THEME = "paper";
 const icons = {
   pin: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m15.5 4.75 3.75 3.75-2.5 1.25-.5 4.25-1.5 1.5-3.5-3.5-4.5 4.5-.75-.75 4.5-4.5-3.5-3.5 1.5-1.5 4.25-.5 1.25-2.5Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'
 };
@@ -20,17 +81,28 @@ const editorContent = document.getElementById("editor-content");
 const editorEmpty = document.getElementById("editor-empty");
 const noteBodyEditor = document.getElementById("note-body-editor");
 const noteBodyInput = document.getElementById("note-body");
+const noteFormattingToolbar = document.getElementById("note-format-toolbar");
+const noteTextContextMenu = document.getElementById("note-text-context-menu");
 const noteDate = document.getElementById("note-date");
 const wordCount = document.getElementById("word-count");
 const pinButton = document.getElementById("toggle-pin");
 const pinLabel = document.getElementById("pin-label");
 const deleteButton = document.getElementById("delete-note");
+const noteSettingsButtons = Array.from(document.querySelectorAll("[data-open-note-settings]"));
+const noteSettingsModal = document.getElementById("note-settings-modal");
+const noteSettingsFont = document.getElementById("note-font-setting");
+const noteSettingsThemeGrid = document.getElementById("note-theme-grid");
+const noteSettingsNoteTitle = document.getElementById("note-settings-note-title");
+const noteSettingsPreview = document.getElementById("note-settings-preview");
+const noteSettingsPreviewTitle = document.getElementById("note-settings-preview-title");
 const localStatus = document.querySelector(".sidebar-footer");
 const localStatusTitle = document.getElementById("local-status-title");
 const localStatusCaption = document.getElementById("local-status-caption");
 const toast = document.getElementById("toast");
 const toastMessage = document.getElementById("toast-message");
 const undoDeleteButton = document.getElementById("undo-delete");
+const notesPane = document.getElementById("notes-pane");
+let noteContextSelection = null;
 let noteDrag = null;
 let noteDragTimer = null;
 let noteClickTimer = null;
@@ -132,6 +204,7 @@ let quickNoteBlurTimer = null;
 let deletedNoteRecord = null;
 let renderedNoteId = null;
 let isMarkdownComposing = false;
+let noteSettingsReturnFocus = null;
 
 function getActiveNote() {
   return notes.find((note) => note.id === activeNoteId) ?? null;
@@ -142,6 +215,118 @@ function noteContent(note) {
     return note.body ? `\n${note.body}` : "";
   }
   return note.body ? `${note.title}\n${note.body}` : note.title;
+}
+
+function normalizeNoteColor(value) {
+  return typeof value === "string" && /^#[\da-f]{6}$/i.test(value)
+    ? value.toLowerCase()
+    : "";
+}
+
+function colorDistance(first, second) {
+  const firstChannels = first.slice(1).match(/../g).map((channel) => Number.parseInt(channel, 16));
+  const secondChannels = second.slice(1).match(/../g).map((channel) => Number.parseInt(channel, 16));
+  return firstChannels.reduce((distance, channel, index) => (
+    distance + (channel - secondChannels[index]) ** 2
+  ), 0);
+}
+
+function findClosestNoteTheme(note) {
+  const backgroundColor = normalizeNoteColor(note?.backgroundColor);
+  const textColor = normalizeNoteColor(note?.textColor);
+  if (!backgroundColor && !textColor) {
+    return DEFAULT_NOTE_THEME;
+  }
+
+  const targetBackground = backgroundColor || NOTE_THEMES[DEFAULT_NOTE_THEME].background;
+  const targetText = textColor || NOTE_THEMES[DEFAULT_NOTE_THEME].text;
+  return Object.entries(NOTE_THEMES).reduce((closest, [key, theme]) => {
+    const distance = colorDistance(targetBackground, theme.background)
+      + colorDistance(targetText, theme.text);
+    return distance < closest.distance ? { key, distance } : closest;
+  }, { key: DEFAULT_NOTE_THEME, distance: Number.POSITIVE_INFINITY }).key;
+}
+
+function getNoteAppearance(note) {
+  const storedFont = typeof note?.font === "string" ? note.font : "default";
+  const font = Object.prototype.hasOwnProperty.call(GOOGLE_FONTS, storedFont)
+    ? storedFont
+    : storedFont === "serif"
+      ? "lora"
+      : storedFont === "mono"
+        ? "roboto-mono"
+        : "default";
+  const theme = typeof note?.theme === "string"
+    && Object.prototype.hasOwnProperty.call(NOTE_THEMES, note.theme)
+    ? note.theme
+    : findClosestNoteTheme(note);
+  return {
+    font,
+    theme
+  };
+}
+
+let googleFontsConnected = false;
+const requestedGoogleFonts = new Set();
+
+function ensureGoogleFontLoaded(fontKey) {
+  const font = GOOGLE_FONTS[fontKey];
+  if (!font?.family || requestedGoogleFonts.has(fontKey)) {
+    return;
+  }
+  requestedGoogleFonts.add(fontKey);
+
+  if (!googleFontsConnected) {
+    const googleFontsOrigin = document.createElement("link");
+    googleFontsOrigin.rel = "preconnect";
+    googleFontsOrigin.href = "https://fonts.googleapis.com";
+    document.head.append(googleFontsOrigin);
+
+    const googleFontFilesOrigin = document.createElement("link");
+    googleFontFilesOrigin.rel = "preconnect";
+    googleFontFilesOrigin.href = "https://fonts.gstatic.com";
+    googleFontFilesOrigin.crossOrigin = "anonymous";
+    document.head.append(googleFontFilesOrigin);
+    googleFontsConnected = true;
+  }
+
+  const stylesheet = document.createElement("link");
+  stylesheet.rel = "stylesheet";
+  stylesheet.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(font.family).replace(/%20/g, "+")}:wght@400;700&display=swap`;
+  stylesheet.addEventListener("error", () => {
+    console.error(`Unable to load the Google Font "${font.family}".`);
+  }, { once: true });
+  document.head.append(stylesheet);
+}
+
+function setNoteAppearance(element, note) {
+  const appearance = getNoteAppearance(note);
+  const theme = NOTE_THEMES[appearance.theme];
+  const hasSavedTheme = typeof note?.theme === "string"
+    && Object.prototype.hasOwnProperty.call(NOTE_THEMES, note.theme);
+  const backgroundColor = hasSavedTheme
+    ? theme.background
+    : normalizeNoteColor(note?.backgroundColor) || theme.background;
+  const textColor = hasSavedTheme
+    ? theme.text
+    : normalizeNoteColor(note?.textColor) || theme.text;
+  const font = GOOGLE_FONTS[appearance.font];
+
+  if (font?.family) {
+    ensureGoogleFontLoaded(appearance.font);
+    element.style.setProperty("--note-font-family", font.css);
+  } else {
+    element.style.removeProperty("--note-font-family");
+  }
+  element.style.setProperty("--note-background-color", backgroundColor);
+  element.style.setProperty("--note-text-color", textColor);
+  element.style.setProperty("--note-muted-text-color", `color-mix(in srgb, ${textColor} 76%, ${backgroundColor})`);
+  element.style.setProperty("--note-subtle-text-color", `color-mix(in srgb, ${textColor} 58%, ${backgroundColor})`);
+  element.style.setProperty("--note-link-color", textColor);
+  element.style.setProperty("--note-accent-color", theme.accent);
+  element.style.setProperty("--note-symbol-color", `color-mix(in srgb, ${textColor} 62%, ${backgroundColor})`);
+  element.style.setProperty("--note-subtext-background", theme.subtext);
+  element.style.setProperty("--note-border-color", `color-mix(in srgb, ${backgroundColor} 84%, ${textColor})`);
 }
 
 function splitNoteContent(content) {
@@ -266,73 +451,86 @@ function escapeHtml(value) {
   })[character]);
 }
 
-function renderMarkdownSourceInline(source) {
-  const fragments = [];
-  const stash = (markup) => {
-    const token = `\uE000${fragments.length}\uE001`;
-    fragments.push(markup);
-    return token;
-  };
-  const symbol = (value) => `<span class="markdown-source-symbol">${escapeHtml(value)}</span>`;
-  let html = escapeHtml(source);
-
-  html = html
-    .replace(/`([^`\n]+)`/g, (match, code) => stash(`${symbol("`")}<code>${code}</code>${symbol("`")}`))
-    .replace(/(\*\*|__)(.+?)\1/g, (match, marker, text) => stash(`${symbol(marker)}<strong>${text}</strong>${symbol(marker)}`))
-    .replace(/~~(.+?)~~/g, (match, text) => stash(`${symbol("~~")}<del>${text}</del>${symbol("~~")}`))
-    .replace(/==(.+?)==/g, (match, text) => stash(`${symbol("==")}<mark>${text}</mark>${symbol("==")}`))
-    .replace(/(^|[^\w])\*([^*\n]+)\*(?!\*)/g, (match, before, text) => `${before}${stash(`${symbol("*")}<em>${text}</em>${symbol("*")}`)}`)
-    .replace(/(^|[^\w])_([^_\n]+)_(?!\w)/g, (match, before, text) => `${before}${stash(`${symbol("_")}<em>${text}</em>${symbol("_")}`)}`)
-    .replace(/\[([^\]]+)\]\(((?:https?:\/\/|mailto:|#)[^)\s]*)\)/gi,
-      (match, label, url) => stash(`${symbol("[")}${label}${symbol("](")}<span class="markdown-source-url">${url}</span>${symbol(")")}`));
-
-  const tokenPattern = /\uE000(\d+)\uE001/g;
-  for (let pass = 0; pass <= fragments.length; pass += 1) {
-    let hasTokens = false;
-    html = html.replace(tokenPattern, (match, index) => {
-      hasTokens = true;
-      return fragments[Number(index)] ?? match;
-    });
-    if (!hasTokens) {
-      break;
-    }
-  }
-  return html;
+function renderSyntaxSymbol(value, modifier = "") {
+  const modifierClass = modifier ? ` ${modifier}` : "";
+  return `<span class="markdown-source-symbol${modifierClass}">${escapeHtml(value)}</span>`;
 }
 
-function renderMarkdownSource(content) {
-  let insideCodeBlock = false;
+function renderNoteSyntaxInline(source) {
+  const syntaxPattern = /\[([^\]\n]+)\]\(((?:https?:\/\/|mailto:|#)[^)\s]+)\)|\*\*(.+?)\*\*|__([^_\n]+)__|~~([^~\n]+)~~|==([^=\n]+)==|\*([^*\n]+)\*/gi;
+  let html = "";
+  let sourceIndex = 0;
+  let match;
+
+  while ((match = syntaxPattern.exec(source)) !== null) {
+    html += escapeHtml(source.slice(sourceIndex, match.index));
+    if (match[1] !== undefined) {
+      const [, label, url] = match;
+      html += `<a class="markdown-source-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${renderSyntaxSymbol("[")}${renderNoteSyntaxInline(label)}${renderSyntaxSymbol("](")}<span class="markdown-source-url">${escapeHtml(url)}</span>${renderSyntaxSymbol(")")}</a>`;
+    } else if (match[3] !== undefined) {
+      html += `${renderSyntaxSymbol("**")}<strong>${renderNoteSyntaxInline(match[3])}</strong>${renderSyntaxSymbol("**")}`;
+    } else if (match[4] !== undefined) {
+      html += `${renderSyntaxSymbol("__")}<u>${renderNoteSyntaxInline(match[4])}</u>${renderSyntaxSymbol("__")}`;
+    } else if (match[5] !== undefined) {
+      html += `${renderSyntaxSymbol("~~")}<del>${renderNoteSyntaxInline(match[5])}</del>${renderSyntaxSymbol("~~")}`;
+    } else if (match[6] !== undefined) {
+      html += `${renderSyntaxSymbol("==")}<mark>${renderNoteSyntaxInline(match[6])}</mark>${renderSyntaxSymbol("==")}`;
+    } else {
+      html += `${renderSyntaxSymbol("*")}<em>${renderNoteSyntaxInline(match[7])}</em>${renderSyntaxSymbol("*")}`;
+    }
+    sourceIndex = syntaxPattern.lastIndex;
+  }
+
+  return html + escapeHtml(source.slice(sourceIndex));
+}
+
+function renderNoteSyntaxLine(line) {
+  const alignment = line.match(/^(\s*)(:left:|:right:)(\s*)(.*)$/i);
+  const content = alignment ? alignment[4] : line;
+  let html = "";
+
+  const heading = content.match(/^(\s*#{1,6}\s+)(.*)$/);
+  if (heading) {
+    const level = heading[1].match(/#/g).length;
+    html = `${renderSyntaxSymbol(heading[1])}<span class="markdown-source-heading markdown-source-heading-${level}">${renderNoteSyntaxInline(heading[2])}</span>`;
+  } else {
+    const subtext = content.match(/^(\s*>\s?)(.*)$/);
+    if (subtext) {
+      html = `${renderSyntaxSymbol(subtext[1])}<span class="markdown-source-subtext">${renderNoteSyntaxInline(subtext[2])}</span>`;
+    } else {
+      const checkbox = content.match(/^(\s*)(-\s*)?\[([ xX]?)\](\s*)(.*)$/);
+      if (checkbox) {
+        const checked = checkbox[3].toLocaleLowerCase() === "x";
+        const marker = `${checkbox[1]}${checkbox[2] ?? ""}[${checkbox[3]}]${checkbox[4]}`;
+        html = `<span class="markdown-source-checkbox" data-checked="${checked}" role="checkbox" aria-checked="${checked}" aria-label="${checked ? "Completed" : "Not completed"}" tabindex="0">${escapeHtml(marker)}</span><span class="markdown-source-list-item">${renderNoteSyntaxInline(checkbox[5])}</span>`;
+      } else {
+        const listItem = content.match(/^(\s*)(-\s*|\d+\.\s+)(.*)$/);
+        if (listItem) {
+          const markerClass = listItem[2].startsWith("-")
+            ? "markdown-source-list-marker-unordered"
+            : "markdown-source-list-marker-ordered";
+          html = `${renderSyntaxSymbol(`${listItem[1]}${listItem[2]}`, markerClass)}<span class="markdown-source-list-item">${renderNoteSyntaxInline(listItem[3])}</span>`;
+        } else {
+          html = renderNoteSyntaxInline(content);
+        }
+      }
+    }
+  }
+
+  if (alignment) {
+    const marker = `${alignment[1]}${alignment[2]}${alignment[3]}`;
+    const align = alignment[2].slice(1, -1).toLocaleLowerCase();
+    return `<div class="markdown-source-line markdown-source-align-${align}">${renderSyntaxSymbol(marker)}${html}</div>`;
+  }
+  return `<div class="markdown-source-line">${html || "<br>"}</div>`;
+}
+
+function renderNoteSyntax(content) {
+  if (!content) {
+    return "";
+  }
   const sourceLines = content.replace(/\r\n?/g, "\n").split("\n");
-  return sourceLines.map((line) => {
-    if (/^\s*```/.test(line)) {
-      insideCodeBlock = !insideCodeBlock;
-      return `<span class="markdown-source-symbol markdown-source-fence">${escapeHtml(line)}</span>`;
-    }
-    if (insideCodeBlock) {
-      return `<span class="markdown-source-code-block">${escapeHtml(line)}</span>`;
-    }
-
-    const heading = line.match(/^(\s*#{1,6}\s+)(.*)$/);
-    if (heading) {
-      const level = heading[1].match(/#/g).length;
-      return `<span class="markdown-source-symbol">${escapeHtml(heading[1])}</span><span class="markdown-source-heading markdown-source-heading-${level}">${renderMarkdownSourceInline(heading[2])}</span>`;
-    }
-
-    const quote = line.match(/^(\s*>\s?)(.*)$/);
-    if (quote) {
-      return `<span class="markdown-source-symbol">${escapeHtml(quote[1])}</span><span class="markdown-source-quote">${renderMarkdownSourceInline(quote[2])}</span>`;
-    }
-
-    const listPrefix = line.match(/^(\s*(?:[-+*]\s+(?:\[[ xX]\]\s+)?|\d+[.)]\s+|>\s?))(.*)$/);
-    if (listPrefix) {
-      return `<span class="markdown-source-symbol">${escapeHtml(listPrefix[1])}</span><span class="markdown-source-list-item">${renderMarkdownSourceInline(listPrefix[2])}</span>`;
-    }
-
-    if (/^\s*(?:-{3,}|\*{3,}|_{3,})$/.test(line)) {
-      return `<span class="markdown-source-symbol markdown-source-rule">${escapeHtml(line)}</span>`;
-    }
-    return renderMarkdownSourceInline(line);
-  }).join('<br data-markdown-break="">');
+  return sourceLines.map(renderNoteSyntaxLine).join("");
 }
 
 function readEditableMarkdown(root) {
@@ -428,10 +626,21 @@ function syncMarkdownSelectionToInput() {
 
 function findEditablePoint(root, targetOffset) {
   let textOffset = 0;
+  let lastCharacter = "";
   let point = null;
-  const visit = (node) => {
+  const visit = (node, hasNextSibling = false) => {
     if (point) {
       return;
+    }
+    if (
+      node !== root
+      && node.nodeType === Node.ELEMENT_NODE
+      && ["DIV", "P"].includes(node.nodeName)
+      && textOffset > 0
+      && lastCharacter !== "\n"
+    ) {
+      textOffset += 1;
+      lastCharacter = "\n";
     }
     if (node.nodeType === Node.TEXT_NODE) {
       if (targetOffset <= textOffset + node.nodeValue.length) {
@@ -439,30 +648,60 @@ function findEditablePoint(root, targetOffset) {
         return;
       }
       textOffset += node.nodeValue.length;
+      if (node.nodeValue.length) {
+        lastCharacter = node.nodeValue.at(-1);
+      }
       return;
     }
     if (node.nodeType === Node.ELEMENT_NODE && node.nodeName === "BR") {
       const parent = node.parentNode;
       const index = Array.prototype.indexOf.call(parent.childNodes, node);
+      const emptyBlockPlaceholder = parent
+        && ["DIV", "P"].includes(parent.nodeName)
+        && parent.childNodes.length === 1
+        && !node.hasAttribute("data-markdown-break");
       if (targetOffset === textOffset) {
         point = { node: parent, offset: index };
         return;
       }
-      textOffset += 1;
+      if (!emptyBlockPlaceholder) {
+        textOffset += 1;
+        lastCharacter = "\n";
+      }
       if (targetOffset === textOffset) {
         point = { node: parent, offset: index + 1 };
       }
       return;
     }
-    for (const child of node.childNodes ?? []) {
-      visit(child);
+    const children = Array.from(node.childNodes ?? []);
+    children.forEach((child, index) => {
+      visit(child, index < children.length - 1);
       if (point) {
         return;
+      }
+    });
+    const emptyBlockPlaceholder = node.nodeType === Node.ELEMENT_NODE
+      && ["DIV", "P"].includes(node.nodeName)
+      && node.childNodes.length === 1
+      && node.firstChild.nodeName === "BR"
+      && !node.firstChild.hasAttribute("data-markdown-break");
+    if (emptyBlockPlaceholder && hasNextSibling) {
+      textOffset += 1;
+      lastCharacter = "\n";
+      if (targetOffset === textOffset) {
+        const index = Array.prototype.indexOf.call(node.parentNode.childNodes, node);
+        point = { node: node.parentNode, offset: index + 1 };
       }
     }
   };
 
-  visit(root);
+  const children = Array.from(root.childNodes);
+  children.forEach((child, index) => {
+    visit(child, index < children.length - 1);
+    if (point) {
+      return;
+    }
+  });
   return point ?? { node: root, offset: root.childNodes.length };
 }
 
@@ -487,10 +726,10 @@ function restoreMarkdownEditorSelection(start, end, direction = "forward") {
   selection.addRange(range);
 }
 
-function renderMarkdownEditor(content, selection = null) {
+function renderNoteEditorContent(content, selection = null) {
   const scrollTop = noteBodyEditor.scrollTop;
   const scrollLeft = noteBodyEditor.scrollLeft;
-  noteBodyEditor.innerHTML = renderMarkdownSource(content);
+  noteBodyEditor.innerHTML = renderNoteSyntax(content);
   noteBodyEditor.scrollTop = scrollTop;
   noteBodyEditor.scrollLeft = scrollLeft;
   if (selection) {
@@ -507,6 +746,304 @@ function replaceMarkdownEditorSelection(replacement) {
   noteBodyInput.setSelectionRange(caret, caret);
   noteBodyEditor.focus({ preventScroll: true });
   noteBodyInput.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
+function insertNoteEditorLineBreak() {
+  syncMarkdownSelectionToInput();
+  const value = noteBodyInput.value;
+  const selectionStart = noteBodyInput.selectionStart;
+  const selectionEnd = noteBodyInput.selectionEnd;
+  const lineStart = value.lastIndexOf("\n", selectionStart - 1) + 1;
+  const nextLineBreak = value.indexOf("\n", selectionEnd);
+  const lineEnd = nextLineBreak === -1 ? value.length : nextLineBreak;
+  const line = value.slice(lineStart, lineEnd);
+  const alignmentPrefix = line.match(/^\s*:(?:left|right):\s*/i)?.[0] ?? "";
+  const listLine = line.slice(alignmentPrefix.length);
+  const listLineStart = lineStart + alignmentPrefix.length;
+  const checkboxList = listLine.match(/^(\s*)(-\s*)?\[([ xX]?)\](\s*)(.*)$/);
+  const unorderedList = listLine.match(/^(\s*)(-\s*)(.*)$/);
+  const orderedList = listLine.match(/^(\s*)(\d+\.\s+)(.*)$/);
+  let nextPrefix = "";
+
+  if (checkboxList) {
+    const markerEnd = checkboxList[1].length
+      + (checkboxList[2]?.length ?? 0)
+      + 2
+      + checkboxList[3].length
+      + checkboxList[4].length;
+    const content = checkboxList[5];
+    if (!content.trim() && selectionStart === selectionEnd && selectionEnd === lineEnd) {
+      replaceNoteEditorText(lineStart, lineEnd, "", lineStart, lineStart);
+      return;
+    }
+    if (selectionStart >= listLineStart + markerEnd) {
+      nextPrefix = `${alignmentPrefix}${checkboxList[1]}[] `;
+    }
+  } else if (unorderedList) {
+    const markerEnd = unorderedList[1].length + unorderedList[2].length;
+    const content = unorderedList[3];
+    if (!content.trim() && selectionStart === selectionEnd && selectionEnd === lineEnd) {
+      replaceNoteEditorText(lineStart, lineEnd, "", lineStart, lineStart);
+      return;
+    }
+    if (selectionStart >= listLineStart + markerEnd) {
+      nextPrefix = `${alignmentPrefix}${unorderedList[1]}- `;
+    }
+  } else if (orderedList) {
+    const markerEnd = orderedList[1].length + orderedList[2].length;
+    const content = orderedList[3];
+    if (!content.trim() && selectionStart === selectionEnd && selectionEnd === lineEnd) {
+      replaceNoteEditorText(lineStart, lineEnd, "", lineStart, lineStart);
+      return;
+    }
+    if (selectionStart >= listLineStart + markerEnd) {
+      const currentNumber = Number.parseInt(orderedList[2], 10);
+      nextPrefix = `${alignmentPrefix}${orderedList[1]}${currentNumber + 1}. `;
+    }
+  }
+
+  const replacement = `\n${nextPrefix}`;
+  const caret = selectionStart + replacement.length;
+  replaceNoteEditorText(selectionStart, selectionEnd, replacement, caret, caret);
+}
+
+function replaceNoteEditorText(start, end, replacement, selectionStart, selectionEnd) {
+  noteBodyInput.setRangeText(replacement, start, end, "end");
+  noteBodyInput.setSelectionRange(selectionStart, selectionEnd);
+  noteBodyEditor.focus({ preventScroll: true });
+  noteBodyInput.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
+function applyInlineNoteFormatting(marker) {
+  const start = noteBodyInput.selectionStart;
+  const end = noteBodyInput.selectionEnd;
+  const selectedText = noteBodyInput.value.slice(start, end);
+  if (!selectedText) {
+    replaceNoteEditorText(start, end, `${marker}${marker}`, start + marker.length, start + marker.length);
+    return;
+  }
+
+  const lines = selectedText.split("\n");
+  const replacement = lines.map((line) => (
+    line ? `${marker}${line}${marker}` : line
+  )).join("\n");
+  if (lines.length === 1) {
+    replaceNoteEditorText(start, end, replacement, start + marker.length, start + marker.length + selectedText.length);
+    return;
+  }
+  const caret = start + replacement.length;
+  replaceNoteEditorText(start, end, replacement, caret, caret);
+}
+
+function applyBlockNoteFormatting(action) {
+  const value = noteBodyInput.value;
+  const selectionStart = noteBodyInput.selectionStart;
+  const selectionEnd = noteBodyInput.selectionEnd;
+  const start = value.lastIndexOf("\n", selectionStart - 1) + 1;
+  const lastSelectedCharacter = selectionEnd > selectionStart && value[selectionEnd - 1] === "\n"
+    ? selectionEnd - 1
+    : selectionEnd;
+  const nextLineBreak = value.indexOf("\n", lastSelectedCharacter);
+  const end = nextLineBreak === -1 ? value.length : nextLineBreak;
+  const lines = value.slice(start, end).split("\n");
+  if (action === "align-left" || action === "align-right") {
+    const alignment = action === "align-left" ? "left" : "right";
+    const contentLines = lines.filter((line) => line.trim());
+    const removeFormatting = contentLines.length > 0
+      && contentLines.every((line) => splitNoteLinePrefixes(line).alignment === alignment);
+    const replacement = lines.map((line) => {
+      if (!line.trim()) {
+        return line;
+      }
+      const parts = splitNoteLinePrefixes(line);
+      return removeFormatting
+        ? `${parts.indent}${parts.content}`
+        : `${parts.indent}:${alignment}: ${parts.content}`;
+    }).join("\n");
+    const caret = start + replacement.length;
+    replaceNoteEditorText(start, end, replacement, caret, caret);
+    return;
+  }
+
+  const formats = {
+    "heading-1": { marker: "# ", pattern: /^(\s*)#\s+/ },
+    "heading-2": { marker: "## ", pattern: /^(\s*)##\s+/ },
+    "heading-3": { marker: "### ", pattern: /^(\s*)###\s+/ },
+    subtext: { marker: "> ", pattern: /^(\s*)>\s?/ },
+    "unordered-list": { marker: "- ", pattern: /^(\s*)-\s*/ },
+    "ordered-list": { marker: null, pattern: /^(\s*)\d+\.\s+/ },
+    "checkbox-list": { marker: "[] ", pattern: /^(\s*)(?:-\s*)?\[[ xX]?\]\s*/ }
+  };
+  const format = formats[action];
+  const contentLines = lines.filter((line) => line.trim());
+  const removeFormatting = contentLines.length > 0
+    && contentLines.every((line) => format.pattern.test(splitNoteLinePrefixes(line).content));
+  let orderedIndex = 0;
+
+  const replacement = lines.map((line) => {
+    if (!line.trim() && lines.length > 1) {
+      return line;
+    }
+    const parts = splitNoteLinePrefixes(line);
+    const linePrefix = `${parts.indent}${parts.alignment ? `:${parts.alignment}: ` : ""}`;
+    if (removeFormatting) {
+      return `${linePrefix}${parts.content.replace(format.pattern, "$1")}`;
+    }
+
+    const withoutMarker = parts.content.replace(/^(?:#{1,6}\s+|>\s*|(?:-\s*)?\[[ xX]?\]\s*|-\s*|\d+\.\s+)/, "");
+    const indent = withoutMarker.match(/^\s*/)[0];
+    const content = withoutMarker.slice(indent.length);
+    if (action === "ordered-list") {
+      orderedIndex += 1;
+      return `${linePrefix}${indent}${orderedIndex}. ${content}`;
+    }
+    return `${linePrefix}${indent}${format.marker}${content}`;
+  }).join("\n");
+  const caret = start + replacement.length;
+  replaceNoteEditorText(start, end, replacement, caret, caret);
+}
+
+function splitNoteLinePrefixes(line) {
+  const match = line.match(/^(\s*)(?::(left|right):\s*)?(.*)$/i);
+  return {
+    indent: match[1],
+    alignment: match[2]?.toLocaleLowerCase() ?? "",
+    content: match[3]
+  };
+}
+
+function applyNoteFormatting(action, syncSelection = true) {
+  if (syncSelection) {
+    syncMarkdownSelectionToInput();
+  }
+  const inlineMarkers = {
+    bold: "**",
+    italic: "*",
+    underline: "__",
+    strikethrough: "~~",
+    highlight: "=="
+  };
+  if (inlineMarkers[action]) {
+    applyInlineNoteFormatting(inlineMarkers[action]);
+  } else if (action === "link") {
+    const start = noteBodyInput.selectionStart;
+    const end = noteBodyInput.selectionEnd;
+    const selectedText = noteBodyInput.value.slice(start, end).replace(/\n/g, " ") || "link";
+    const url = "https://example.com";
+    const replacement = `[${selectedText}](${url})`;
+    const urlStart = start + selectedText.length + 3;
+    replaceNoteEditorText(start, end, replacement, urlStart, urlStart + url.length);
+  } else {
+    applyBlockNoteFormatting(action);
+  }
+}
+
+function toggleNoteCheckbox(marker) {
+  syncMarkdownSelectionToInput();
+  const markerText = marker.firstChild?.nodeValue ?? "";
+  const markerStart = getEditableTextOffset(noteBodyEditor, marker.firstChild, 0);
+  const checkboxStart = markerText.indexOf("[");
+  const checkboxEnd = markerText.indexOf("]", checkboxStart);
+  if (checkboxStart === -1 || checkboxEnd === -1) {
+    return;
+  }
+
+  const selectionStart = noteBodyInput.selectionStart;
+  const selectionEnd = noteBodyInput.selectionEnd;
+  const sourceStart = markerStart + checkboxStart;
+  const sourceEnd = markerStart + checkboxEnd + 1;
+  const replacement = marker.dataset.checked === "true" ? "[]" : "[x]";
+  const offsetAfterToggle = (offset) => {
+    if (offset >= sourceEnd) {
+      return offset + replacement.length - (sourceEnd - sourceStart);
+    }
+    return offset > sourceStart ? sourceStart + replacement.length : offset;
+  };
+  replaceNoteEditorText(
+    sourceStart,
+    sourceEnd,
+    replacement,
+    offsetAfterToggle(selectionStart),
+    offsetAfterToggle(selectionEnd)
+  );
+}
+
+function closeNoteTextContextMenu() {
+  noteTextContextMenu.hidden = true;
+  noteTextContextMenu.style.removeProperty("left");
+  noteTextContextMenu.style.removeProperty("top");
+  noteContextSelection = null;
+}
+
+function openNoteTextContextMenu(event) {
+  const selection = window.getSelection();
+  if (
+    !selection?.anchorNode
+    || !selection.focusNode
+    || !noteBodyEditor.contains(selection.anchorNode)
+    || !noteBodyEditor.contains(selection.focusNode)
+    || !selection.toString()
+  ) {
+    return;
+  }
+
+  syncMarkdownSelectionToInput();
+  const start = noteBodyInput.selectionStart;
+  const end = noteBodyInput.selectionEnd;
+  if (start === end) {
+    return;
+  }
+  event.preventDefault();
+  noteContextSelection = {
+    start,
+    end,
+    direction: noteBodyInput.selectionDirection,
+    text: noteBodyInput.value.slice(start, end)
+  };
+  noteTextContextMenu.hidden = false;
+  noteTextContextMenu.style.left = `${event.clientX}px`;
+  noteTextContextMenu.style.top = `${event.clientY}px`;
+  window.requestAnimationFrame(() => {
+    if (noteTextContextMenu.hidden) {
+      return;
+    }
+    const bounds = noteTextContextMenu.getBoundingClientRect();
+    noteTextContextMenu.style.left = `${Math.max(8, Math.min(event.clientX, window.innerWidth - bounds.width - 8))}px`;
+    noteTextContextMenu.style.top = `${Math.max(8, Math.min(event.clientY, window.innerHeight - bounds.height - 8))}px`;
+    noteTextContextMenu.querySelector('[role="menuitem"]')?.focus({ preventScroll: true });
+  });
+}
+
+async function copySelectedNoteText(selection) {
+  try {
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === "function" && window.isSecureContext) {
+      await navigator.clipboard.writeText(selection.text);
+    } else {
+      const copyBuffer = document.createElement("textarea");
+      copyBuffer.value = selection.text;
+      copyBuffer.setAttribute("readonly", "");
+      copyBuffer.style.position = "fixed";
+      copyBuffer.style.opacity = "0";
+      document.body.append(copyBuffer);
+      let copied;
+      try {
+        copyBuffer.select();
+        copied = document.execCommand("copy");
+      } finally {
+        copyBuffer.remove();
+      }
+      if (!copied) {
+        throw new Error("The browser did not copy the selected note text.");
+      }
+    }
+    showToast("Text copied");
+  } catch (error) {
+    console.error("Unable to copy selected note text.", error);
+    showToast("Text could not be copied.");
+  } finally {
+    noteBodyEditor.focus({ preventScroll: true });
+    restoreMarkdownEditorSelection(selection.start, selection.end, selection.direction);
+  }
 }
 
 function formatShortDate(value) {
@@ -569,6 +1106,131 @@ function scheduleSave() {
     saveTimer = null;
     persistNotes();
   }, 350);
+}
+
+function getNoteSettingsFromForm() {
+  const selectedTheme = noteSettingsThemeGrid.querySelector('[role="radio"][aria-checked="true"]');
+  return {
+    font: Object.prototype.hasOwnProperty.call(GOOGLE_FONTS, noteSettingsFont.value)
+      ? noteSettingsFont.value
+      : "default",
+    theme: selectedTheme?.dataset.noteTheme ?? DEFAULT_NOTE_THEME
+  };
+}
+
+function renderNoteFontOptions() {
+  Object.entries(GOOGLE_FONTS).forEach(([key, font]) => {
+    if (key === "default") {
+      return;
+    }
+    const option = document.createElement("option");
+    option.value = key;
+    option.textContent = font.label;
+    noteSettingsFont.append(option);
+  });
+}
+
+function renderNoteThemeChoices(selectedTheme) {
+  const fragment = document.createDocumentFragment();
+  Object.entries(NOTE_THEMES).forEach(([key, theme]) => {
+    const choice = document.createElement("button");
+    choice.className = "note-theme-choice";
+    choice.type = "button";
+    choice.setAttribute("role", "radio");
+    choice.setAttribute("aria-label", theme.label);
+    choice.setAttribute("aria-checked", String(key === selectedTheme));
+    choice.tabIndex = key === selectedTheme ? 0 : -1;
+    choice.dataset.noteTheme = key;
+    choice.style.setProperty("--theme-background", theme.background);
+    choice.style.setProperty("--theme-text", theme.text);
+
+    const sample = document.createElement("span");
+    sample.className = "note-theme-sample";
+    sample.textContent = "Aa";
+    sample.setAttribute("aria-hidden", "true");
+    const label = document.createElement("span");
+    label.className = "note-theme-label";
+    label.textContent = theme.label;
+    choice.append(sample, label);
+    fragment.append(choice);
+  });
+  noteSettingsThemeGrid.replaceChildren(fragment);
+}
+
+function selectNoteTheme(themeKey) {
+  if (!Object.prototype.hasOwnProperty.call(NOTE_THEMES, themeKey)) {
+    return;
+  }
+  noteSettingsThemeGrid.querySelectorAll("[data-note-theme]").forEach((choice) => {
+    const isSelected = choice.dataset.noteTheme === themeKey;
+    choice.setAttribute("aria-checked", String(isSelected));
+    choice.tabIndex = isSelected ? 0 : -1;
+  });
+  updateNoteSettingsPreview();
+  applyNoteSettings();
+}
+
+function updateNoteSettingsPreview() {
+  const note = getActiveNote();
+  if (!note) {
+    return;
+  }
+  setNoteAppearance(noteSettingsPreview, {
+    ...note,
+    ...getNoteSettingsFromForm()
+  });
+}
+
+function openNoteSettings(trigger) {
+  const note = getActiveNote();
+  if (!note) {
+    return;
+  }
+  const appearance = getNoteAppearance(note);
+  noteSettingsReturnFocus = trigger;
+  noteSettingsFont.value = appearance.font;
+  renderNoteThemeChoices(appearance.theme);
+  noteSettingsNoteTitle.textContent = note.title.trim() || "Untitled note";
+  noteSettingsPreviewTitle.textContent = note.title.trim() || "A note preview";
+  updateNoteSettingsPreview();
+  noteSettingsModal.hidden = false;
+  window.requestAnimationFrame(() => noteSettingsFont.focus({ preventScroll: true }));
+}
+
+function closeNoteSettings() {
+  noteSettingsModal.hidden = true;
+  const returnFocus = noteSettingsReturnFocus;
+  noteSettingsReturnFocus = null;
+  if (returnFocus?.isConnected && !returnFocus.disabled) {
+    returnFocus.focus({ preventScroll: true });
+  }
+}
+
+function applyNoteSettings() {
+  const note = getActiveNote();
+  if (!note) {
+    return;
+  }
+  const nextAppearance = getNoteSettingsFromForm();
+  const currentAppearance = getNoteAppearance(note);
+  if (
+    currentAppearance.font === nextAppearance.font
+    && currentAppearance.theme === nextAppearance.theme
+  ) {
+    updateNoteSettingsPreview();
+    return;
+  }
+
+  Object.assign(note, nextAppearance);
+  delete note.backgroundColor;
+  delete note.textColor;
+  note.updatedAt = new Date().toISOString();
+  noteDate.dateTime = note.updatedAt;
+  noteDate.textContent = `Edited ${formatShortDate(note.updatedAt).toLocaleLowerCase()}`;
+  setNoteAppearance(noteBodyEditor, note);
+  setNoteAppearance(noteSettingsPreview, note);
+  renderNotesList();
+  scheduleSave();
 }
 
 function setFilter(filter) {
@@ -651,6 +1313,7 @@ function renderNotesList() {
 
     const card = document.createElement("div");
     card.className = "note-card";
+    setNoteAppearance(card, note);
     card.classList.toggle("is-selected", note.id === activeNoteId);
     card.dataset.noteId = note.id;
     card.setAttribute("role", "button");
@@ -715,6 +1378,10 @@ function renderEditor(selection = null) {
   editorEmpty.hidden = note !== null;
   pinButton.disabled = note === null;
   deleteButton.disabled = note === null;
+  noteSettingsButtons.forEach((button) => {
+    button.disabled = note === null;
+  });
+  setNoteAppearance(noteBodyEditor, note);
 
   if (!note) {
     renderedNoteId = null;
@@ -735,147 +1402,15 @@ function renderEditor(selection = null) {
   pinButton.setAttribute("aria-label", note.pinned ? "Unpin note" : "Pin note");
   pinLabel.textContent = note.pinned ? "Pinned" : "Pin";
   updateWordCount();
-  renderMarkdownEditor(noteBodyInput.value, selection);
+  renderNoteEditorContent(noteBodyInput.value, selection);
 }
 
 function render() {
   renderFilters();
   renderNotesList();
   renderEditor();
+  notesPane.inert = appShell.dataset.view === "editor";
   updatePersistenceStatus(persistenceError ? "saved" : undefined);
-}
-
-function wrapSelectedText(marker) {
-  syncMarkdownSelectionToInput();
-  const start = noteBodyInput.selectionStart;
-  const end = noteBodyInput.selectionEnd;
-  const selectedText = noteBodyInput.value.slice(start, end);
-  const replacement = `${marker}${selectedText}${marker}`;
-  noteBodyInput.setRangeText(replacement, start, end, "end");
-  if (!selectedText) {
-    noteBodyInput.setSelectionRange(start + marker.length, start + marker.length);
-  } else {
-    noteBodyInput.setSelectionRange(start + marker.length, start + marker.length + selectedText.length);
-  }
-  noteBodyEditor.focus({ preventScroll: true });
-  noteBodyInput.dispatchEvent(new Event("input", { bubbles: true }));
-}
-
-function applyLineFormatting(action) {
-  syncMarkdownSelectionToInput();
-  let value = noteBodyInput.value;
-  let selectionStart = noteBodyInput.selectionStart;
-  let selectionEnd = noteBodyInput.selectionEnd;
-  const currentLineStart = value.lastIndexOf("\n", selectionStart - 1) + 1;
-  if (selectionStart === selectionEnd && currentLineStart === 0) {
-    const titleBreak = value.indexOf("\n");
-    if (titleBreak === -1) {
-      value += "\n";
-      noteBodyInput.value = value;
-      selectionStart = value.length;
-    } else {
-      selectionStart = titleBreak + 1;
-    }
-    selectionEnd = selectionStart;
-  }
-  const lineStart = value.lastIndexOf("\n", selectionStart - 1) + 1;
-  const lineBreak = value.indexOf("\n", selectionEnd);
-  const lineEnd = lineBreak === -1 ? value.length : lineBreak;
-  const lines = value.slice(lineStart, lineEnd).split("\n");
-  const rules = {
-    "heading-1": {
-      prefix: "# ",
-      pattern: /^\s*#(?!#)\s+/,
-      strip: /^\s*#{1,6}\s+/
-    },
-    "heading-2": {
-      prefix: "## ",
-      pattern: /^\s*##\s+/,
-      strip: /^\s*#{1,6}\s+/
-    },
-    "heading-3": {
-      prefix: "### ",
-      pattern: /^\s*###\s+/,
-      strip: /^\s*#{1,6}\s+/
-    },
-    "unordered-list": {
-      prefix: "- ",
-      pattern: /^\s*[-+*]\s+(?:\[[ xX]\]\s+)?/,
-      strip: /^\s*(?:[-+*]\s+(?:\[[ xX]\]\s+)?|\d+[.)]\s+)/
-    },
-    "ordered-list": {
-      prefix: null,
-      pattern: /^\s*\d+[.)]\s+/,
-      strip: /^\s*(?:[-+*]\s+(?:\[[ xX]\]\s+)?|\d+[.)]\s+)/
-    },
-    "task-list": {
-      prefix: "- [ ] ",
-      pattern: /^\s*[-+*]\s+\[[ xX]\]\s+/,
-      strip: /^\s*(?:[-+*]\s+(?:\[[ xX]\]\s+)?|\d+[.)]\s+)/
-    }
-  };
-  const { prefix, pattern, strip } = rules[action];
-  const eligibleLines = lines.filter((line, index) => (
-    (line.trim() || lines.length === 1) && !(lineStart === 0 && index === 0)
-  ));
-  if (!eligibleLines.length) {
-    noteBodyEditor.focus({ preventScroll: true });
-    return;
-  }
-
-  const removeFormatting = eligibleLines.every((line) => pattern.test(line));
-  let orderedIndex = 0;
-  const replacement = lines.map((line, index) => {
-    if (!line.trim() && lines.length > 1) {
-      return line;
-    }
-    if (lineStart === 0 && index === 0) {
-      return line;
-    }
-    if (removeFormatting) {
-      return line.replace(pattern, "");
-    }
-
-    const content = line.replace(strip, "");
-    if (action === "ordered-list") {
-      orderedIndex += 1;
-      return `${orderedIndex}. ${content}`;
-    }
-    return `${prefix}${content}`;
-  }).join("\n");
-
-  noteBodyInput.setRangeText(replacement, lineStart, lineEnd, "select");
-  if (selectionStart === selectionEnd) {
-    const firstLine = replacement.split("\n")[0];
-    const insertedPrefix = firstLine.match(/^(?:#{1,6}\s+|[-+*]\s+(?:\[[ xX]\]\s+)?|\d+[.)]\s+)/)?.[0].length ?? 0;
-    const caret = lineStart + insertedPrefix;
-    noteBodyInput.setSelectionRange(caret, caret);
-  }
-  noteBodyEditor.focus({ preventScroll: true });
-  noteBodyInput.dispatchEvent(new Event("input", { bubbles: true }));
-}
-
-function insertLink() {
-  syncMarkdownSelectionToInput();
-  const start = noteBodyInput.selectionStart;
-  const end = noteBodyInput.selectionEnd;
-  const selectedText = noteBodyInput.value.slice(start, end);
-  const label = selectedText || "link";
-  const replacement = `[${label}](https://example.com)`;
-  const urlStart = start + label.length + 3;
-  const urlEnd = urlStart + "https://example.com".length;
-  noteBodyInput.setRangeText(replacement, start, end, "end");
-  noteBodyInput.setSelectionRange(urlStart, urlEnd);
-  noteBodyEditor.focus({ preventScroll: true });
-  noteBodyInput.dispatchEvent(new Event("input", { bubbles: true }));
-}
-
-function applyMarkdownAction(action) {
-  if (action === "link") {
-    insertLink();
-    return;
-  }
-  applyLineFormatting(action);
 }
 
 function isMobileViewport() {
@@ -922,6 +1457,8 @@ function createNoteRecord(content) {
     title: parsedContent.title,
     body: parsedContent.body,
     pinned: false,
+    font: "default",
+    theme: DEFAULT_NOTE_THEME,
     color: "default",
     createdAt: now,
     updatedAt: now
@@ -969,10 +1506,12 @@ function selectNote(noteId) {
     return;
   }
   activeNoteId = noteId;
-  if (isMobileViewport()) {
-    appShell.dataset.view = "editor";
-  }
+  appShell.dataset.view = "editor";
   render();
+  window.requestAnimationFrame(() => {
+    noteBodyEditor.focus({ preventScroll: true });
+    restoreMarkdownEditorSelection(noteBodyInput.value.length, noteBodyInput.value.length);
+  });
 }
 
 function reorderNote(sourceId, targetId, position = "before") {
@@ -1073,8 +1612,12 @@ function clearNoteDrag() {
     noteDragTimer = null;
   }
   noteDrag?.item.classList.remove("is-dragging");
-  notesList.querySelectorAll(".is-drop-before, .is-drop-after").forEach((item) => {
-    item.classList.remove("is-drop-before", "is-drop-after");
+  if (noteDrag) {
+    noteDrag.item.style.removeProperty("--drag-x");
+    noteDrag.item.style.removeProperty("--drag-y");
+  }
+  notesList.querySelectorAll(".is-drop-target").forEach((item) => {
+    item.classList.remove("is-drop-target");
   });
   noteDrag = null;
 }
@@ -1087,9 +1630,9 @@ function startNoteDrag(item, input, pointerId, clientX, clientY) {
     noteId: item.dataset.noteItemId,
     startX: clientX,
     startY: clientY,
+    startScrollTop: notesList.parentElement.scrollTop,
     active: false,
-    targetId: null,
-    position: "before"
+    targetId: null
   };
 }
 
@@ -1113,23 +1656,23 @@ function updateNoteDrag(clientX, clientY) {
     notesList.parentElement.scrollTop += Math.ceil((clientY - (scrollBounds.bottom - scrollEdge)) / 4);
   }
 
+  noteDrag.item.style.setProperty("--drag-x", `${clientX - noteDrag.startX}px`);
+  noteDrag.item.style.setProperty(
+    "--drag-y",
+    `${clientY - noteDrag.startY + notesList.parentElement.scrollTop - noteDrag.startScrollTop}px`
+  );
+
   const target = document.elementFromPoint(clientX, clientY)?.closest("[data-note-item-id]");
-  notesList.querySelectorAll(".is-drop-before, .is-drop-after").forEach((item) => {
-    item.classList.remove("is-drop-before", "is-drop-after");
+  notesList.querySelectorAll(".is-drop-target").forEach((item) => {
+    item.classList.remove("is-drop-target");
   });
   if (!target || target.dataset.noteItemId === noteDrag.noteId) {
     noteDrag.targetId = null;
     return;
   }
 
-  const bounds = target.getBoundingClientRect();
   noteDrag.targetId = target.dataset.noteItemId;
-  const horizontalDrop = notesList.dataset.layout === "grid"
-    && Math.abs(clientX - (bounds.left + bounds.width / 2)) > Math.abs(clientY - (bounds.top + bounds.height / 2));
-  noteDrag.position = horizontalDrop
-    ? (clientX > bounds.left + bounds.width / 2 ? "after" : "before")
-    : (clientY > bounds.top + bounds.height / 2 ? "after" : "before");
-  target.classList.add(noteDrag.position === "after" ? "is-drop-after" : "is-drop-before");
+  target.classList.add("is-drop-target");
 }
 
 function finishNoteDrag() {
@@ -1147,7 +1690,7 @@ function finishNoteDrag() {
     noteClickTimer = null;
   }, 500);
   if (drag.targetId) {
-    reorderNote(drag.noteId, drag.targetId, drag.position);
+    reorderNote(drag.noteId, drag.targetId);
   }
 }
 
@@ -1165,16 +1708,15 @@ notesList.addEventListener("pointerdown", (event) => {
   if (event.pointerType === "touch" || event.button !== 0) {
     return;
   }
-  const handle = event.target.closest("[data-drag-note-id]");
-  const item = handle?.closest("[data-note-item-id]");
-  if (!handle || !item) {
+  const item = event.target.closest("[data-note-item-id]");
+  const dragHandle = event.target.closest("[data-drag-note-id]");
+  if (!item || (event.target.closest("button") && !dragHandle)) {
     return;
   }
   startNoteDrag(item, "pointer", event.pointerId, event.clientX, event.clientY);
-  handle.setPointerCapture(event.pointerId);
 });
 
-notesList.addEventListener("pointermove", (event) => {
+window.addEventListener("pointermove", (event) => {
   if (!noteDrag || noteDrag.input !== "pointer" || event.pointerId !== noteDrag.pointerId) {
     return;
   }
@@ -1186,13 +1728,13 @@ notesList.addEventListener("pointermove", (event) => {
   updateNoteDrag(event.clientX, event.clientY);
 });
 
-notesList.addEventListener("pointerup", (event) => {
+window.addEventListener("pointerup", (event) => {
   if (noteDrag?.input === "pointer" && event.pointerId === noteDrag.pointerId) {
     finishNoteDrag();
   }
 });
 
-notesList.addEventListener("pointercancel", () => {
+window.addEventListener("pointercancel", () => {
   if (noteDrag?.input === "pointer") {
     clearNoteDrag();
   }
@@ -1252,16 +1794,6 @@ searchInput.addEventListener("input", () => {
   searchQuery = searchInput.value;
   clearSearchButton.hidden = searchQuery.length === 0;
   renderNotesList();
-});
-
-document.querySelectorAll("[data-markdown-wrap]").forEach((button) => {
-  button.addEventListener("mousedown", (event) => event.preventDefault());
-  button.addEventListener("click", () => wrapSelectedText(button.dataset.markdownWrap));
-});
-
-document.querySelectorAll("[data-markdown-action]").forEach((button) => {
-  button.addEventListener("mousedown", (event) => event.preventDefault());
-  button.addEventListener("click", () => applyMarkdownAction(button.dataset.markdownAction));
 });
 
 clearSearchButton.addEventListener("click", () => {
@@ -1331,11 +1863,26 @@ noteBodyEditor.addEventListener("compositionend", () => {
 });
 
 noteBodyEditor.addEventListener("keydown", (event) => {
+  const checkbox = event.target.closest?.(".markdown-source-checkbox");
+  if (checkbox && event.key === " ") {
+    event.preventDefault();
+    toggleNoteCheckbox(checkbox);
+    return;
+  }
   if (event.key !== "Enter" || event.isComposing || isMarkdownComposing) {
     return;
   }
   event.preventDefault();
-  replaceMarkdownEditorSelection("\n");
+  insertNoteEditorLineBreak();
+});
+
+noteBodyEditor.addEventListener("click", (event) => {
+  const checkbox = event.target.closest?.(".markdown-source-checkbox");
+  if (!checkbox) {
+    return;
+  }
+  event.preventDefault();
+  toggleNoteCheckbox(checkbox);
 });
 
 noteBodyEditor.addEventListener("beforeinput", (event) => {
@@ -1345,7 +1892,7 @@ noteBodyEditor.addEventListener("beforeinput", (event) => {
     && !isMarkdownComposing
   ) {
     event.preventDefault();
-    replaceMarkdownEditorSelection("\n");
+    insertNoteEditorLineBreak();
   }
 });
 
@@ -1359,6 +1906,69 @@ noteBodyEditor.addEventListener("paste", (event) => {
 });
 
 document.addEventListener("selectionchange", syncMarkdownSelectionToInput);
+
+noteBodyEditor.addEventListener("contextmenu", openNoteTextContextMenu);
+
+noteFormattingToolbar.addEventListener("mousedown", (event) => {
+  if (event.target.closest("[data-note-format]")) {
+    event.preventDefault();
+  }
+});
+
+noteFormattingToolbar.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-note-format]");
+  if (!button) {
+    return;
+  }
+  event.preventDefault();
+  applyNoteFormatting(button.dataset.noteFormat);
+});
+
+noteTextContextMenu.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-note-format], [data-note-context-action]");
+  if (!button || !noteContextSelection) {
+    return;
+  }
+  event.preventDefault();
+  const selection = noteContextSelection;
+  if (button.dataset.noteContextAction === "copy") {
+    closeNoteTextContextMenu();
+    copySelectedNoteText(selection);
+    return;
+  }
+
+  noteBodyInput.setSelectionRange(selection.start, selection.end, selection.direction);
+  closeNoteTextContextMenu();
+  applyNoteFormatting(button.dataset.noteFormat, false);
+});
+
+noteTextContextMenu.addEventListener("keydown", (event) => {
+  const items = Array.from(noteTextContextMenu.querySelectorAll('[role="menuitem"]'));
+  const currentIndex = items.indexOf(document.activeElement);
+  let nextIndex = null;
+  if (event.key === "ArrowDown") {
+    nextIndex = (currentIndex + 1) % items.length;
+  } else if (event.key === "ArrowUp") {
+    nextIndex = currentIndex <= 0 ? items.length - 1 : currentIndex - 1;
+  } else if (event.key === "Home") {
+    nextIndex = 0;
+  } else if (event.key === "End") {
+    nextIndex = items.length - 1;
+  }
+  if (nextIndex !== null) {
+    event.preventDefault();
+    items[nextIndex].focus();
+  }
+});
+
+document.addEventListener("pointerdown", (event) => {
+  if (!noteTextContextMenu.hidden && !noteTextContextMenu.contains(event.target)) {
+    closeNoteTextContextMenu();
+  }
+});
+
+window.addEventListener("resize", closeNoteTextContextMenu);
+window.addEventListener("scroll", closeNoteTextContextMenu, true);
 
 noteBodyInput.addEventListener("input", () => {
   updateActiveNoteBody({
@@ -1400,10 +2010,95 @@ undoDeleteButton.addEventListener("click", undoDelete);
 document.getElementById("dismiss-toast").addEventListener("click", hideToast);
 document.getElementById("back-to-notes").addEventListener("click", () => {
   appShell.dataset.view = "list";
+  render();
   searchInput.focus({ preventScroll: true });
 });
 
+noteSettingsButtons.forEach((button) => {
+  button.addEventListener("click", () => openNoteSettings(button));
+});
+
+noteSettingsModal.addEventListener("click", (event) => {
+  if (event.target === noteSettingsModal) {
+    closeNoteSettings();
+  }
+});
+
+noteSettingsModal.addEventListener("keydown", (event) => {
+  if (event.key !== "Tab") {
+    return;
+  }
+  const focusableElements = Array.from(noteSettingsModal.querySelectorAll(
+    'button:not(:disabled):not([tabindex="-1"]), select:not(:disabled), input:not(:disabled), [role="radio"][tabindex="0"]'
+  ));
+  const firstElement = focusableElements[0];
+  const lastElement = focusableElements.at(-1);
+  if (event.shiftKey && document.activeElement === firstElement) {
+    event.preventDefault();
+    lastElement.focus();
+  } else if (!event.shiftKey && document.activeElement === lastElement) {
+    event.preventDefault();
+    firstElement.focus();
+  }
+});
+
+document.getElementById("close-note-settings").addEventListener("click", closeNoteSettings);
+document.getElementById("done-note-settings").addEventListener("click", closeNoteSettings);
+document.getElementById("reset-note-settings").addEventListener("click", () => {
+  noteSettingsFont.value = "default";
+  renderNoteThemeChoices(DEFAULT_NOTE_THEME);
+  updateNoteSettingsPreview();
+  applyNoteSettings();
+});
+
+noteSettingsFont.addEventListener("input", updateNoteSettingsPreview);
+noteSettingsFont.addEventListener("change", applyNoteSettings);
+
+noteSettingsThemeGrid.addEventListener("click", (event) => {
+  const choice = event.target.closest?.("[data-note-theme]");
+  if (choice) {
+    selectNoteTheme(choice.dataset.noteTheme);
+  }
+});
+
+noteSettingsThemeGrid.addEventListener("keydown", (event) => {
+  const direction = ["ArrowRight", "ArrowDown"].includes(event.key)
+    ? 1
+    : ["ArrowLeft", "ArrowUp"].includes(event.key)
+      ? -1
+      : 0;
+  const choices = Array.from(noteSettingsThemeGrid.querySelectorAll("[data-note-theme]"));
+  const currentChoice = event.target.closest?.("[data-note-theme]");
+  const currentIndex = choices.indexOf(currentChoice);
+  if (!direction || currentIndex === -1) {
+    return;
+  }
+  event.preventDefault();
+  const nextIndex = (currentIndex + direction + choices.length) % choices.length;
+  choices[nextIndex].focus();
+  selectNoteTheme(choices[nextIndex].dataset.noteTheme);
+});
+
 window.addEventListener("keydown", (event) => {
+  if (!noteSettingsModal.hidden) {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closeNoteSettings();
+    }
+    return;
+  }
+
+  if (event.key === "Escape" && !noteTextContextMenu.hidden) {
+    const selection = noteContextSelection;
+    event.preventDefault();
+    closeNoteTextContextMenu();
+    if (selection) {
+      noteBodyEditor.focus({ preventScroll: true });
+      restoreMarkdownEditorSelection(selection.start, selection.end, selection.direction);
+    }
+    return;
+  }
+
   const isShortcut = event.metaKey || event.ctrlKey;
   const key = event.key.toLocaleLowerCase();
 
@@ -1418,8 +2113,10 @@ window.addEventListener("keydown", (event) => {
     searchInput.select();
     return;
   }
-  if (event.key === "Escape" && isMobileViewport() && appShell.dataset.view === "editor") {
+  if (event.key === "Escape" && appShell.dataset.view === "editor") {
     appShell.dataset.view = "list";
+    render();
+    searchInput.focus({ preventScroll: true });
   }
 });
 
@@ -1431,6 +2128,7 @@ window.addEventListener("pagehide", () => {
   }
 });
 
+renderNoteFontOptions();
 if (initialState.needsInitialization) {
   persistNotes();
 }
