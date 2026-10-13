@@ -1072,6 +1072,7 @@ function formatFullDate(value) {
 function updatePersistenceStatus(state = "saved") {
   const hasError = Boolean(persistenceError);
   localStatus.classList.toggle("is-error", hasError);
+  localStatus.classList.toggle("is-saving", !hasError && state === "saving");
 
   if (hasError) {
     localStatusTitle.textContent = "Storage needs attention";
@@ -1079,8 +1080,8 @@ function updatePersistenceStatus(state = "saved") {
     return;
   }
 
-  localStatusTitle.textContent = state === "saving" ? "Saving changes..." : "Saved on this device";
-  localStatusCaption.textContent = state === "saving" ? "Keeping your latest edits." : "Your notes stay yours.";
+  localStatusTitle.textContent = state === "saving" ? "Saving changes..." : "";
+  localStatusCaption.textContent = state === "saving" ? "Keeping your latest edits." : "";
 }
 
 function persistNotes() {

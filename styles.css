@@ -118,6 +118,10 @@ textarea:focus-visible {
   text-align: center;
 }
 
+.sidebar-footer:not(.is-error):not(.is-saving) {
+  display: none;
+}
+
 .sidebar-footer > div {
   width: 100%;
   min-width: 0;
@@ -180,10 +184,10 @@ textarea:focus-visible {
 }
 
 .topbar-search {
-  width: auto;
+  width: 100%;
   min-width: 0;
   max-width: none;
-  flex: 1 1 0;
+  flex: 1 1 auto;
   margin-left: 0;
 }
 
@@ -322,10 +326,10 @@ textarea:focus-visible {
 
 .search-clear-button {
   display: grid;
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   flex: 0 0 auto;
-  padding: 3px;
+  padding: 4px;
   place-items: center;
   color: #85877f;
   background: transparent;
@@ -340,8 +344,8 @@ textarea:focus-visible {
 }
 
 .search-clear-button svg {
-  width: 30px;
-  height: 30px;
+  width: 16px;
+  height: 16px;
 }
 
 .quick-note-composer {
@@ -1768,8 +1772,8 @@ textarea:focus-visible {
   }
 
   .topbar-search {
-    width: auto;
-    flex: 1 1 0;
+    width: 100%;
+    flex: 1 1 auto;
     max-width: none;
   }
 
@@ -1844,8 +1848,8 @@ textarea:focus-visible {
   }
 
   .search-clear-button svg {
-    width: 30px;
-    height: 30px;
+    width: 18px;
+    height: 18px;
   }
 
   .back-button svg {
