@@ -34,7 +34,7 @@ body {
   margin: 0;
   color: var(--ink);
   background: var(--canvas);
-  font-size: 14px;
+  font-size: 16px;
 }
 
 button,
@@ -143,7 +143,7 @@ textarea:focus-visible {
 .local-status-title {
   margin: 0;
   color: #53574f;
-  font-size: 9px;
+  font-size: 16px;
   font-weight: 570;
   line-height: 1.35;
 }
@@ -152,7 +152,7 @@ textarea:focus-visible {
   display: none;
   margin: 4px 0 0;
   color: #92938c;
-  font-size: 10px;
+  font-size: 16px;
   line-height: 1.4;
 }
 
@@ -242,7 +242,7 @@ textarea:focus-visible {
   background: transparent;
   border: 0;
   cursor: pointer;
-  font-size: 11px;
+  font-size: 16px;
   font-weight: 540;
 }
 
@@ -263,7 +263,7 @@ textarea:focus-visible {
   border: 1px solid var(--note-border-color, #eeede9);
   border-radius: 4px;
   font-family: inherit;
-  font-size: 9px;
+  font-size: 16px;
   line-height: 1.3;
 }
 
@@ -313,7 +313,7 @@ textarea:focus-visible {
   background: transparent;
   border: 0;
   outline: 0;
-  font-size: 11px;
+  font-size: 16px;
 }
 
 .search-field input::placeholder {
@@ -383,7 +383,7 @@ textarea:focus-visible {
   border: 0;
   outline: 0;
   resize: vertical;
-  font-size: 12px;
+  font-size: 16px;
   line-height: 1.65;
   user-select: text;
   -webkit-user-select: text;
@@ -402,7 +402,7 @@ textarea:focus-visible {
   padding-top: 5px;
   border-top: 1px solid #f1f0ed;
   color: #9a9c95;
-  font-size: 9px;
+  font-size: 16px;
 }
 
 .list-summary {
@@ -413,7 +413,7 @@ textarea:focus-visible {
   gap: 7px;
   margin: 6px 0 7px;
   color: #999a94;
-  font-size: 10px;
+  font-size: 16px;
   font-weight: 560;
 }
 
@@ -441,7 +441,7 @@ textarea:focus-visible {
   border: 1px solid transparent;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 10px;
+  font-size: 16px;
   font-weight: 550;
   transition: background 140ms ease, color 140ms ease;
   white-space: nowrap;
@@ -461,7 +461,7 @@ textarea:focus-visible {
 
 .filter-tab span {
   color: #979990;
-  font-size: 9px;
+  font-size: 16px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -756,7 +756,7 @@ textarea:focus-visible {
   overflow: hidden;
   margin: 0;
   color: var(--note-text-color, #33372f);
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 640;
   letter-spacing: -0.15px;
   line-height: 1.45;
@@ -769,7 +769,7 @@ textarea:focus-visible {
 .note-card-date {
   flex: 0 0 auto;
   color: var(--note-subtle-text-color, #a0a19b);
-  font-size: 9px;
+  font-size: 16px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -779,7 +779,7 @@ textarea:focus-visible {
   max-height: 3.2em;
   margin: 6px 0 0;
   color: var(--note-muted-text-color, #83857e);
-  font-size: 10.5px;
+  font-size: 16px;
   line-height: 1.6;
   transition: max-height 180ms ease;
   -webkit-box-orient: vertical;
@@ -829,7 +829,7 @@ textarea:focus-visible {
 .empty-state h2 {
   margin: 0;
   color: #44483f;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 640;
   letter-spacing: -0.2px;
 }
@@ -838,7 +838,7 @@ textarea:focus-visible {
   max-width: 225px;
   margin: 7px 0 13px;
   color: #8b8d86;
-  font-size: 10.5px;
+  font-size: 16px;
   line-height: 1.55;
 }
 
@@ -850,7 +850,7 @@ textarea:focus-visible {
   border: 0;
   border-radius: 7px;
   cursor: pointer;
-  font-size: 10px;
+  font-size: 16px;
   font-weight: 600;
   transition: background 140ms ease;
 }
@@ -866,6 +866,20 @@ textarea:focus-visible {
   flex-direction: column;
   padding: 0;
   background: #f7f6f3;
+}
+
+.app-shell[data-view="editor"] .editor-pane {
+  position: fixed;
+  z-index: 30;
+  inset: 0;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(12px, 4vw, 32px);
+  background: rgb(28 32 28 / 44%);
+}
+
+.app-shell[data-view="editor"] ~ .toast {
+  z-index: 35;
 }
 
 .editor-actions {
@@ -887,7 +901,7 @@ textarea:focus-visible {
   border: 1px solid transparent;
   border-radius: 7px;
   cursor: pointer;
-  font-size: 10px;
+  font-size: 16px;
   font-weight: 560;
   transition: color 140ms ease, background 140ms ease, border-color 140ms ease;
 }
@@ -939,9 +953,46 @@ textarea:focus-visible {
 
 .editor-stage {
   display: flex;
+  width: min(960px, 100%);
+  height: min(850px, calc(100dvh - 48px));
   min-height: 0;
-  flex: 1;
+  max-height: calc(100dvh - 24px);
+  flex: 0 1 auto;
   flex-direction: column;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid #e7e7e1;
+  border-radius: 14px;
+  box-shadow: 0 20px 60px rgb(27 32 27 / 24%);
+}
+
+.note-modal-header {
+  display: flex;
+  min-height: 62px;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 18px;
+  background: #fff;
+  border-bottom: 1px solid #e9e8e3;
+}
+
+.note-modal-header .note-navbar-actions {
+  width: 100%;
+  justify-content: space-between;
+  gap: 12px;
+  margin-left: 0;
+}
+
+.editor-stage > .note-format-toolbar {
+  min-height: 54px;
+  flex-wrap: nowrap;
+  gap: 2px;
+  margin: 0;
+  padding: 7px 10px;
+  overflow-x: auto;
+  background: #fff;
+  border-bottom: 1px solid #e9e8e3;
 }
 
 .editor-content {
@@ -964,7 +1015,7 @@ textarea:focus-visible {
   min-height: 19px;
   margin-bottom: 13px;
   color: #9a9c95;
-  font-size: 10px;
+  font-size: 16px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -990,7 +1041,7 @@ textarea:focus-visible {
   border: 1px solid transparent;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 11px;
+  font-size: 16px;
   font-weight: 600;
   transition: background 130ms ease, border-color 130ms ease, color 130ms ease;
 }
@@ -1005,7 +1056,7 @@ textarea:focus-visible {
 .note-format-button strong,
 .note-format-button u,
 .note-format-button s {
-  font-size: 12px;
+  font-size: 16px;
 }
 
 .note-format-button mark {
@@ -1013,7 +1064,7 @@ textarea:focus-visible {
   color: inherit;
   background: #fff0a8;
   border-radius: 2px;
-  font-size: 11px;
+  font-size: 16px;
 }
 
 .note-format-separator {
@@ -1057,7 +1108,7 @@ textarea:focus-visible {
   border: 0;
   outline: 0;
   font-family: var(--note-font-family, inherit);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 430;
   line-height: 1.8;
   tab-size: 2;
@@ -1119,7 +1170,7 @@ textarea:focus-visible {
 .markdown-source-heading-4,
 .markdown-source-heading-5,
 .markdown-source-heading-6 {
-  font-size: 15px;
+  font-size: 16px;
 }
 
 .markdown-source-subtext {
@@ -1130,7 +1181,7 @@ textarea:focus-visible {
   background: var(--note-subtext-background, #f1f3ee);
   border-left: 2px solid var(--note-accent-color, #cbd4c8);
   border-radius: 0 4px 4px 0;
-  font-size: 0.86em;
+  font-size: 16px;
   font-style: italic;
   line-height: 1.55;
 }
@@ -1258,13 +1309,13 @@ textarea:focus-visible {
   gap: 7px;
   color: #a0a19b;
   border-top: 1px solid #f1f0ed;
-  font-size: 9px;
+  font-size: 16px;
 }
 
 .footer-shortcut {
   margin-left: auto;
   color: #85877f;
-  font-size: 9px;
+  font-size: 16px;
   font-weight: 600;
 }
 
@@ -1281,6 +1332,11 @@ textarea:focus-visible {
   justify-content: center;
   padding: 30px;
   text-align: center;
+}
+
+.editor-stage > .editor-empty {
+  min-height: 0;
+  flex: 1;
 }
 
 .editor-empty-icon {
@@ -1309,7 +1365,7 @@ textarea:focus-visible {
 .editor-empty p {
   margin: 8px 0 16px;
   color: #8b8d86;
-  font-size: 12px;
+  font-size: 16px;
 }
 
 .note-text-context-menu {
@@ -1335,7 +1391,7 @@ textarea:focus-visible {
   border: 0;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 11px;
+  font-size: 16px;
   text-align: left;
 }
 
@@ -1387,7 +1443,7 @@ textarea:focus-visible {
   margin: 5px 0 0;
   overflow: hidden;
   color: #85877f;
-  font-size: 11px;
+  font-size: 16px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1427,7 +1483,7 @@ textarea:focus-visible {
   justify-content: space-between;
   gap: 15px;
   color: #4e534c;
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 550;
 }
 
@@ -1439,7 +1495,7 @@ textarea:focus-visible {
   background: #fff;
   border: 1px solid #e4e4de;
   border-radius: 7px;
-  font-size: 11px;
+  font-size: 16px;
 }
 
 .note-theme-field {
@@ -1452,7 +1508,7 @@ textarea:focus-visible {
 .note-theme-field legend {
   margin-bottom: 9px;
   color: #4e534c;
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 600;
 }
 
@@ -1490,7 +1546,7 @@ textarea:focus-visible {
 }
 
 .note-theme-sample {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 650;
   line-height: 1;
 }
@@ -1498,7 +1554,7 @@ textarea:focus-visible {
 .note-theme-label {
   width: 100%;
   overflow: hidden;
-  font-size: 9px;
+  font-size: 16px;
   font-weight: 570;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1520,12 +1576,12 @@ textarea:focus-visible {
 }
 
 .note-settings-preview strong {
-  font-size: 13px;
+  font-size: 16px;
 }
 
 .note-settings-preview span {
   color: var(--note-muted-text-color, #83857e);
-  font-size: 10px;
+  font-size: 16px;
 }
 
 @media (max-width: 480px) {
@@ -1601,7 +1657,7 @@ textarea:focus-visible {
   padding: 0 12px;
   border-radius: 7px;
   cursor: pointer;
-  font-size: 11px;
+  font-size: 16px;
   font-weight: 570;
 }
 
@@ -1668,7 +1724,7 @@ textarea:focus-visible {
 }
 
 .toast-message {
-  font-size: 11px;
+  font-size: 16px;
 }
 
 .toast-action,
@@ -1681,7 +1737,7 @@ textarea:focus-visible {
   background: transparent;
   border: 0;
   cursor: pointer;
-  font-size: 11px;
+  font-size: 16px;
   font-weight: 650;
 }
 
@@ -1725,37 +1781,8 @@ textarea:focus-visible {
     margin-top: 0;
   }
 
-  .app-shell[data-view="list"] .editor-pane,
-  .app-shell[data-view="list"] .note-navbar-actions {
+  .app-shell[data-view="list"] .editor-pane {
     display: none;
-  }
-
-  .app-shell[data-view="editor"] .top-navbar {
-    position: fixed;
-    z-index: 20;
-    top: 0;
-    right: 0;
-    left: 0;
-    height: 64px;
-  }
-
-  .app-shell[data-view="editor"] .topbar-search,
-  .app-shell[data-view="editor"] .sidebar-footer {
-    display: none;
-  }
-
-  .app-shell[data-view="editor"] .note-navbar-actions {
-    display: flex;
-    width: 100%;
-    justify-content: space-between;
-    margin-left: 0;
-  }
-
-  .app-shell[data-view="editor"] .editor-pane {
-    position: fixed;
-    z-index: 19;
-    inset: 64px 0 0;
-    overflow: auto;
   }
 }
 
@@ -1805,8 +1832,7 @@ textarea:focus-visible {
     grid-template-rows: 58px minmax(0, 1fr);
   }
 
-  .notes-pane,
-  .editor-pane {
+  .notes-pane {
     grid-row: 2;
     width: 100%;
     height: 100%;
@@ -1858,28 +1884,11 @@ textarea:focus-visible {
   }
 
   .topbar-search input {
-    font-size: 11px;
+    font-size: 16px;
   }
 
   .search-shortcut {
     display: none;
-  }
-
-  .note-navbar-actions {
-    display: none;
-  }
-
-  .app-shell[data-view="editor"] .topbar-search {
-    display: none;
-  }
-
-  .app-shell[data-view="editor"] .note-navbar-actions {
-    display: flex;
-    width: auto;
-    flex: 1;
-    justify-content: space-between;
-    gap: 5px;
-    margin-left: 0;
   }
 
   .notes-pane {
@@ -1896,7 +1905,7 @@ textarea:focus-visible {
 
   .quick-note-composer textarea {
     min-height: 70px;
-    font-size: 12px;
+    font-size: 16px;
     resize: none;
   }
 
@@ -1907,7 +1916,7 @@ textarea:focus-visible {
 
   .list-summary {
     margin: 4px 0 6px;
-    font-size: 10px;
+    font-size: 16px;
   }
 
   .filter-tab {
@@ -1936,16 +1945,16 @@ textarea:focus-visible {
   }
 
   .note-card-title {
-    font-size: 13px;
+    font-size: 16px;
   }
 
   .note-card-date {
-    font-size: 10px;
+    font-size: 16px;
   }
 
   .note-card-preview {
     margin-top: 7px;
-    font-size: 11px;
+    font-size: 16px;
   }
 
   .note-card-move-controls {
@@ -1953,10 +1962,6 @@ textarea:focus-visible {
   }
 
   .app-shell[data-view="list"] .editor-pane {
-    display: none;
-  }
-
-  .app-shell[data-view="editor"] .notes-pane {
     display: none;
   }
 
@@ -1968,7 +1973,7 @@ textarea:focus-visible {
     min-height: 34px;
     gap: 5px;
     padding: 0 7px;
-    font-size: 10px;
+    font-size: 16px;
   }
 
   .tool-button svg {
@@ -2008,27 +2013,20 @@ textarea:focus-visible {
 
   .note-meta {
     flex-wrap: wrap;
-    font-size: 9px;
+    font-size: 16px;
   }
 
   .note-format-toolbar {
-    position: fixed;
-    z-index: 4;
-    bottom: max(12px, env(safe-area-inset-bottom));
-    left: 50%;
-    width: min(620px, calc(100vw - 20px));
+    position: static;
+    width: 100%;
     min-height: 0;
     flex-wrap: nowrap;
     gap: 2px;
     margin: 0;
     padding: 7px;
     overflow-x: auto;
-    background: rgb(255 255 255 / 96%);
-    border: 1px solid #e6e5df;
-    border-radius: 14px;
-    box-shadow: 0 8px 28px rgb(39 43 36 / 18%);
-    backdrop-filter: blur(14px);
-    transform: translateX(-50%);
+    background: #fff;
+    border-bottom: 1px solid #e9e8e3;
   }
 
   .note-format-button {
@@ -2037,7 +2035,7 @@ textarea:focus-visible {
     flex: 0 0 auto;
     padding: 0 8px;
     border-radius: 9px;
-    font-size: 12px;
+    font-size: 16px;
   }
 
   .note-format-separator {
@@ -2061,7 +2059,7 @@ textarea:focus-visible {
   .note-body-editor {
     padding: 16px;
     padding-bottom: 90px;
-    font-size: 15px;
+    font-size: 16px;
     line-height: 1.85;
   }
 
@@ -2078,9 +2076,6 @@ textarea:focus-visible {
     padding-left: 13px;
   }
 
-  .app-shell[data-view="editor"] + .toast {
-    bottom: calc(max(16px, env(safe-area-inset-bottom)) + 64px);
-  }
 }
 
 @media (max-width: 380px) {
@@ -2095,13 +2090,13 @@ textarea:focus-visible {
   }
 
   .back-button {
-    font-size: 10px;
+    font-size: 16px;
   }
 
   .tool-button {
     gap: 3px;
     padding: 0 5px;
-    font-size: 9px;
+    font-size: 16px;
   }
 
   .pin-button,

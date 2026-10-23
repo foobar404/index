@@ -68,6 +68,8 @@ const icons = {
 };
 
 const appShell = document.getElementById("app-shell");
+const editorPane = document.querySelector(".editor-pane");
+const topNavbar = document.querySelector(".top-navbar");
 const searchInput = document.getElementById("search-input");
 const clearSearchButton = document.getElementById("clear-search");
 const quickNoteInput = document.getElementById("quick-note-input");
@@ -1377,6 +1379,7 @@ function renderEditor(selection = null) {
   const note = getActiveNote();
   editorContent.hidden = note === null;
   editorEmpty.hidden = note !== null;
+  noteFormattingToolbar.hidden = note === null;
   pinButton.disabled = note === null;
   deleteButton.disabled = note === null;
   noteSettingsButtons.forEach((button) => {
@@ -1410,7 +1413,9 @@ function render() {
   renderFilters();
   renderNotesList();
   renderEditor();
-  notesPane.inert = appShell.dataset.view === "editor";
+  const isEditorOpen = appShell.dataset.view === "editor";
+  notesPane.inert = isEditorOpen;
+  topNavbar.inert = isEditorOpen;
   updatePersistenceStatus(persistenceError ? "saved" : undefined);
 }
 
@@ -1513,6 +1518,15 @@ function selectNote(noteId) {
     noteBodyEditor.focus({ preventScroll: true });
     restoreMarkdownEditorSelection(noteBodyInput.value.length, noteBodyInput.value.length);
   });
+}
+
+function closeNoteEditor() {
+  if (appShell.dataset.view !== "editor") {
+    return;
+  }
+  appShell.dataset.view = "list";
+  render();
+  searchInput.focus({ preventScroll: true });
 }
 
 function reorderNote(sourceId, targetId, position = "before") {
@@ -2009,10 +2023,30 @@ pinButton.addEventListener("click", () => {
 deleteButton.addEventListener("click", deleteActiveNote);
 undoDeleteButton.addEventListener("click", undoDelete);
 document.getElementById("dismiss-toast").addEventListener("click", hideToast);
-document.getElementById("back-to-notes").addEventListener("click", () => {
-  appShell.dataset.view = "list";
-  render();
-  searchInput.focus({ preventScroll: true });
+document.getElementById("back-to-notes").addEventListener("click", closeNoteEditor);
+
+editorPane.addEventListener("click", (event) => {
+  if (event.target === editorPane) {
+    closeNoteEditor();
+  }
+});
+
+editorPane.addEventListener("keydown", (event) => {
+  if (event.key !== "Tab") {
+    return;
+  }
+  const focusableElements = Array.from(editorPane.querySelectorAll(
+    'button:not(:disabled), [contenteditable="plaintext-only"], input:not(:disabled), select:not(:disabled), textarea:not(:disabled)'
+  )).filter((element) => !element.closest("[hidden]"));
+  const firstElement = focusableElements[0];
+  const lastElement = focusableElements.at(-1);
+  if (event.shiftKey && document.activeElement === firstElement) {
+    event.preventDefault();
+    lastElement.focus();
+  } else if (!event.shiftKey && document.activeElement === lastElement) {
+    event.preventDefault();
+    firstElement.focus();
+  }
 });
 
 noteSettingsButtons.forEach((button) => {
@@ -2115,9 +2149,7 @@ window.addEventListener("keydown", (event) => {
     return;
   }
   if (event.key === "Escape" && appShell.dataset.view === "editor") {
-    appShell.dataset.view = "list";
-    render();
-    searchInput.focus({ preventScroll: true });
+    closeNoteEditor();
   }
 });
 
