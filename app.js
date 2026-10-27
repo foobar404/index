@@ -69,6 +69,7 @@ const icons = {
 
 const appShell = document.getElementById("app-shell");
 const editorPane = document.querySelector(".editor-pane");
+const editorStage = document.querySelector(".editor-stage");
 const topNavbar = document.querySelector(".top-navbar");
 const searchInput = document.getElementById("search-input");
 const clearSearchButton = document.getElementById("clear-search");
@@ -490,30 +491,45 @@ function renderNoteSyntaxLine(line) {
   const alignment = line.match(/^(\s*)(:left:|:right:)(\s*)(.*)$/i);
   const content = alignment ? alignment[4] : line;
   let html = "";
+  const divider = content.match(/^(\s*)(-{3,}|_{3,}|\*{3,})\s*$/);
+  const lineClass = divider ? "markdown-source-line markdown-source-divider" : "markdown-source-line";
 
-  const heading = content.match(/^(\s*#{1,6}\s+)(.*)$/);
-  if (heading) {
-    const level = heading[1].match(/#/g).length;
-    html = `${renderSyntaxSymbol(heading[1])}<span class="markdown-source-heading markdown-source-heading-${level}">${renderNoteSyntaxInline(heading[2])}</span>`;
+  if (divider) {
+    html = `${renderSyntaxSymbol(divider[1])}${renderSyntaxSymbol(divider[2])}<span class="markdown-source-divider-line" aria-hidden="true"></span>`;
   } else {
-    const subtext = content.match(/^(\s*>\s?)(.*)$/);
-    if (subtext) {
-      html = `${renderSyntaxSymbol(subtext[1])}<span class="markdown-source-subtext">${renderNoteSyntaxInline(subtext[2])}</span>`;
+    const heading = content.match(/^(\s*#{1,6}\s+)(.*)$/);
+    if (heading) {
+      const level = heading[1].match(/#/g).length;
+      html = `${renderSyntaxSymbol(heading[1])}<span class="markdown-source-heading markdown-source-heading-${level}">${renderNoteSyntaxInline(heading[2])}</span>`;
     } else {
-      const checkbox = content.match(/^(\s*)(-\s*)?\[([ xX]?)\](\s*)(.*)$/);
-      if (checkbox) {
-        const checked = checkbox[3].toLocaleLowerCase() === "x";
-        const marker = `${checkbox[1]}${checkbox[2] ?? ""}[${checkbox[3]}]${checkbox[4]}`;
-        html = `<span class="markdown-source-checkbox" data-checked="${checked}" role="checkbox" aria-checked="${checked}" aria-label="${checked ? "Completed" : "Not completed"}" tabindex="0">${escapeHtml(marker)}</span><span class="markdown-source-list-item">${renderNoteSyntaxInline(checkbox[5])}</span>`;
+      const subtext = content.match(/^(\s*>\s?)(.*)$/);
+      if (subtext) {
+        html = `${renderSyntaxSymbol(subtext[1])}<span class="markdown-source-subtext">${renderNoteSyntaxInline(subtext[2])}</span>`;
       } else {
-        const listItem = content.match(/^(\s*)(-\s*|\d+\.\s+)(.*)$/);
-        if (listItem) {
-          const markerClass = listItem[2].startsWith("-")
-            ? "markdown-source-list-marker-unordered"
-            : "markdown-source-list-marker-ordered";
-          html = `${renderSyntaxSymbol(`${listItem[1]}${listItem[2]}`, markerClass)}<span class="markdown-source-list-item">${renderNoteSyntaxInline(listItem[3])}</span>`;
+        const checkbox = content.match(/^(\s*)(-\s*|\*\s+)?\[([ xX]?)\](\s*)(.*)$/);
+        if (checkbox) {
+          const checked = checkbox[3].toLocaleLowerCase() === "x";
+          const marker = `${checkbox[1]}${checkbox[2] ?? ""}[${checkbox[3]}]${checkbox[4]}`;
+          html = `<span class="markdown-source-checkbox" data-checked="${checked}" role="checkbox" aria-checked="${checked}" aria-label="${checked ? "Completed" : "Not completed"}" tabindex="0">${escapeHtml(marker)}</span><span class="markdown-source-list-item">${renderNoteSyntaxInline(checkbox[5])}</span>`;
         } else {
-          html = renderNoteSyntaxInline(content);
+          const listItem = content.match(/^(\s*)(-\s*|\*\s+|\d+\.\s+)(.*)$/);
+          if (listItem) {
+            const markerClass = /^[*-]/.test(listItem[2])
+              ? "markdown-source-list-marker-unordered"
+              : "markdown-source-list-marker-ordered";
+            const indent = listItem[1].replace(/\t/g, "  ");
+            const indentWidth = indent.length * 0.75;
+            const listDepth = indent.length === 0 ? 0 : Math.max(1, Math.floor(indent.length / 2));
+            const markerIcon = markerClass === "markdown-source-list-marker-unordered"
+              ? ` data-list-icon="${listDepth % 3}"`
+              : "";
+            const renderedIndent = listItem[1]
+              ? `<span class="markdown-source-symbol markdown-source-list-indent" style="width: ${indentWidth}em">${escapeHtml(listItem[1])}</span>`
+              : "";
+            html = `${renderedIndent}<span class="markdown-source-symbol ${markerClass}"${markerIcon}>${escapeHtml(listItem[2])}</span><span class="markdown-source-list-item">${renderNoteSyntaxInline(listItem[3])}</span>`;
+          } else {
+            html = renderNoteSyntaxInline(content);
+          }
         }
       }
     }
@@ -522,9 +538,9 @@ function renderNoteSyntaxLine(line) {
   if (alignment) {
     const marker = `${alignment[1]}${alignment[2]}${alignment[3]}`;
     const align = alignment[2].slice(1, -1).toLocaleLowerCase();
-    return `<div class="markdown-source-line markdown-source-align-${align}">${renderSyntaxSymbol(marker)}${html}</div>`;
+    return `<div class="${lineClass} markdown-source-align-${align}">${renderSyntaxSymbol(marker)}${html}</div>`;
   }
-  return `<div class="markdown-source-line">${html || "<br>"}</div>`;
+  return `<div class="${lineClass}">${html || "<br>"}</div>`;
 }
 
 function renderNoteSyntax(content) {
@@ -762,8 +778,8 @@ function insertNoteEditorLineBreak() {
   const alignmentPrefix = line.match(/^\s*:(?:left|right):\s*/i)?.[0] ?? "";
   const listLine = line.slice(alignmentPrefix.length);
   const listLineStart = lineStart + alignmentPrefix.length;
-  const checkboxList = listLine.match(/^(\s*)(-\s*)?\[([ xX]?)\](\s*)(.*)$/);
-  const unorderedList = listLine.match(/^(\s*)(-\s*)(.*)$/);
+  const checkboxList = listLine.match(/^(\s*)(-\s*|\*\s+)?\[([ xX]?)\](\s*)(.*)$/);
+  const unorderedList = listLine.match(/^(\s*)(-\s*|\*\s+)(.*)$/);
   const orderedList = listLine.match(/^(\s*)(\d+\.\s+)(.*)$/);
   let nextPrefix = "";
 
@@ -789,7 +805,7 @@ function insertNoteEditorLineBreak() {
       return;
     }
     if (selectionStart >= listLineStart + markerEnd) {
-      nextPrefix = `${alignmentPrefix}${unorderedList[1]}- `;
+      nextPrefix = `${alignmentPrefix}${unorderedList[1]}${unorderedList[2][0]} `;
     }
   } else if (orderedList) {
     const markerEnd = orderedList[1].length + orderedList[2].length;
@@ -814,6 +830,18 @@ function replaceNoteEditorText(start, end, replacement, selectionStart, selectio
   noteBodyInput.setSelectionRange(selectionStart, selectionEnd);
   noteBodyEditor.focus({ preventScroll: true });
   noteBodyInput.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
+function applyDividerNoteFormatting() {
+  const start = noteBodyInput.selectionStart;
+  const end = noteBodyInput.selectionEnd;
+  const before = noteBodyInput.value.slice(0, start);
+  const after = noteBodyInput.value.slice(end);
+  const prefix = before && !before.endsWith("\n") ? "\n" : "";
+  const suffix = after && !after.startsWith("\n") ? "\n" : "";
+  const replacement = `${prefix}---${suffix}`;
+  const caret = start + replacement.length;
+  replaceNoteEditorText(start, end, replacement, caret, caret);
 }
 
 function applyInlineNoteFormatting(marker) {
@@ -872,9 +900,9 @@ function applyBlockNoteFormatting(action) {
     "heading-2": { marker: "## ", pattern: /^(\s*)##\s+/ },
     "heading-3": { marker: "### ", pattern: /^(\s*)###\s+/ },
     subtext: { marker: "> ", pattern: /^(\s*)>\s?/ },
-    "unordered-list": { marker: "- ", pattern: /^(\s*)-\s*/ },
+    "unordered-list": { marker: "- ", pattern: /^(\s*)(?:-\s*|\*\s+)/ },
     "ordered-list": { marker: null, pattern: /^(\s*)\d+\.\s+/ },
-    "checkbox-list": { marker: "[] ", pattern: /^(\s*)(?:-\s*)?\[[ xX]?\]\s*/ }
+    "checkbox-list": { marker: "[] ", pattern: /^(\s*)(?:-\s*|\*\s+)?\[[ xX]?\]\s*/ }
   };
   const format = formats[action];
   const contentLines = lines.filter((line) => line.trim());
@@ -892,7 +920,7 @@ function applyBlockNoteFormatting(action) {
       return `${linePrefix}${parts.content.replace(format.pattern, "$1")}`;
     }
 
-    const withoutMarker = parts.content.replace(/^(?:#{1,6}\s+|>\s*|(?:-\s*)?\[[ xX]?\]\s*|-\s*|\d+\.\s+)/, "");
+    const withoutMarker = parts.content.replace(/^(?:#{1,6}\s+|>\s*|(?:-\s*|\*\s+)?\[[ xX]?\]\s*|-\s*|\*\s+|\d+\.\s+)/, "");
     const indent = withoutMarker.match(/^\s*/)[0];
     const content = withoutMarker.slice(indent.length);
     if (action === "ordered-list") {
@@ -935,6 +963,8 @@ function applyNoteFormatting(action, syncSelection = true) {
     const replacement = `[${selectedText}](${url})`;
     const urlStart = start + selectedText.length + 3;
     replaceNoteEditorText(start, end, replacement, urlStart, urlStart + url.length);
+  } else if (action === "divider") {
+    applyDividerNoteFormatting();
   } else {
     applyBlockNoteFormatting(action);
   }
@@ -1230,7 +1260,7 @@ function applyNoteSettings() {
   note.updatedAt = new Date().toISOString();
   noteDate.dateTime = note.updatedAt;
   noteDate.textContent = `Edited ${formatShortDate(note.updatedAt).toLocaleLowerCase()}`;
-  setNoteAppearance(noteBodyEditor, note);
+  setNoteAppearance(editorStage, note);
   setNoteAppearance(noteSettingsPreview, note);
   renderNotesList();
   scheduleSave();
@@ -1343,7 +1373,7 @@ function renderNotesList() {
 
     const preview = document.createElement("p");
     preview.className = "note-card-preview";
-    const plainText = note.body.replace(/\s+/g, " ").trim();
+    const plainText = note.body.replace(/\r\n?/g, "\n").replace(/[ \t]+/g, " ").trim();
     const contentLength = note.title.trim().length + plainText.length;
     card.dataset.contentSize = contentLength < 90 ? "short" : contentLength < 300 ? "medium" : "long";
     preview.textContent = plainText || "No additional text";
@@ -1385,7 +1415,7 @@ function renderEditor(selection = null) {
   noteSettingsButtons.forEach((button) => {
     button.disabled = note === null;
   });
-  setNoteAppearance(noteBodyEditor, note);
+  setNoteAppearance(editorStage, note);
 
   if (!note) {
     renderedNoteId = null;
@@ -1458,9 +1488,11 @@ function createNoteRecord(content) {
     ? window.crypto.randomUUID()
     : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
   const parsedContent = splitNoteContent(content);
+  const title = parsedContent.title.trim();
+  const titleWithHeading = /^ {0,3}#{1,6}(?:\s|$)/.test(title) ? title : `# ${title}`;
   return {
     id,
-    title: parsedContent.title,
+    title: titleWithHeading,
     body: parsedContent.body,
     pinned: false,
     font: "default",
@@ -1553,6 +1585,10 @@ function deleteActiveNote() {
     return;
   }
 
+  if (!window.confirm("Delete this note? You can undo this afterward.")) {
+    return;
+  }
+
   const [deletedNote] = notes.splice(index, 1);
   deletedNoteRecord = { note: deletedNote, index };
   activeNoteId = visibleNotes()[0]?.id ?? null;
@@ -1596,7 +1632,7 @@ document.querySelectorAll("[data-notes-layout]").forEach((button) => {
   button.addEventListener("click", () => setNotesLayout(button.dataset.notesLayout));
 });
 
-document.getElementById("create-from-empty").addEventListener("click", createNote);
+document.getElementById("create-from-empty").addEventListener("click", () => createNote());
 
 notesList.addEventListener("click", (event) => {
   if (suppressNoteClick) {
@@ -1879,6 +1915,11 @@ noteBodyEditor.addEventListener("compositionend", () => {
 
 noteBodyEditor.addEventListener("keydown", (event) => {
   const checkbox = event.target.closest?.(".markdown-source-checkbox");
+  if (event.key === "Tab" && !checkbox) {
+    event.preventDefault();
+    replaceMarkdownEditorSelection("\t");
+    return;
+  }
   if (checkbox && event.key === " ") {
     event.preventDefault();
     toggleNoteCheckbox(checkbox);

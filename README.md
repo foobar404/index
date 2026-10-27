@@ -6,16 +6,16 @@ Catch a passing idea, tidy up a to-do list, or keep the good bits from a brainst
 
 ## A few handy things
 
-- **Catch it fast:** jot a quick note and leave the field to save. The first line becomes an optional title.
+- **Catch it fast:** jot a quick note and leave the field to save. New notes start with a `# ` heading, and the first line becomes the title.
 - **Make it yours:** pin the keepers and undo accidental deletes.
-- **Find it again:** search matches note titles and text—even when your spelling is a little adventurous.
+- **Find it again:** search matches note titles and text—even when your spelling is a little adventurous. Homepage previews preserve line breaks.
 - **Choose your view:** switch between list and grid, with card sizes that subtly reflect each note's content.
-- **Make each note yours:** open Note appearance from the editor to choose from 23 Google Fonts and 32 color themes, from soft paper shades to acid brights and dark neon palettes. Settings are saved with that note and apply to its card and editor, with a live preview at the top of the settings.
-- **Write your way:** format notes live with `# heading`, `**bold**`, `*italic*`, `__underline__`, `~~strikethrough~~`, `==highlight==`, `> subtext`, `- unordered items`, `1. ordered items`, `[] unchecked tasks`, `[x] completed tasks`, `:left: left-aligned lines`, `:right: right-aligned lines`, and `[link text](https://example.com)`. Unordered markers display as bullets; list prefixes continue when you press Enter, and checkboxes display as Unicode boxes and can be toggled by clicking them or pressing Space when focused. Older `- [ ]` checkbox markers are still recognized. Use the editor toolbar or right-click selected text for formatting and Copy. The first line is the title, and formatting markers stay visible but subtle while you edit.
+- **Make each note yours:** open Note appearance from the editor to choose from 23 Google Fonts and 32 color themes, from soft paper shades to acid brights and dark neon palettes. Settings are saved with that note and apply to its card and the full editor surface, including the navigation and toolbar, with a live preview at the top of the settings.
+- **Write your way:** format notes live with `# heading`, `**bold**`, `*italic*`, `__underline__`, `~~strikethrough~~`, `==highlight==`, `---` dividers, `> subtext`, `-` or `*` unordered items, `1. ordered items`, `[] unchecked tasks`, `[x] completed tasks`, `:left: left-aligned lines`, `:right: right-aligned lines`, and `[link text](https://example.com)`. Unordered markers display as bullets, and indented items render as nested levels cycling through filled circle, triangle, and star markers; list prefixes continue when you press Enter, and checkboxes display as Unicode boxes and can be toggled by clicking them or pressing Space when focused. Older `- [ ]` and `* [ ]` checkbox markers are recognized. Use the editor toolbar or right-click selected text for formatting and Copy. Tab inserts a tab character in the note. The first line is the title, and formatting markers stay visible but subtle while you edit.
 - **Reorder in a snap:** hold and drag a note on touchscreens, or drag its handle with a mouse.
 - **Keep it close:** notes are saved in this browser on this device.
 
-On mobile, the writing tools sit in a toolbar across the top of the editor. Opening a note brings up an editor modal over the notes list; close it with **All notes**, Escape, or by clicking outside the modal.
+The writing tools sit in a toolbar across the top of the editor and stay there while scrolling, with note navigation and actions at the bottom. Opening a note brings up an editor modal over the notes list; close it with the **X** button, Escape, or by clicking outside the modal.
 
 ## Run it
 

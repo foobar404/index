@@ -784,6 +784,7 @@ textarea:focus-visible {
   transition: max-height 180ms ease;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+  white-space: pre-line;
   user-select: none;
   -webkit-user-select: none;
 }
@@ -874,7 +875,7 @@ textarea:focus-visible {
   inset: 0;
   align-items: center;
   justify-content: center;
-  padding: clamp(12px, 4vw, 32px);
+  padding: clamp(6px, 2vw, 16px);
   background: rgb(28 32 28 / 44%);
 }
 
@@ -929,20 +930,19 @@ textarea:focus-visible {
 }
 
 .pin-button.is-pinned {
-  color: #fff;
-  background: var(--accent-dark);
-  border-color: #314336;
-  box-shadow: 0 0 0 2px rgb(63 85 70 / 18%);
+  color: var(--note-text-color, #363a34);
+  background: color-mix(in srgb, var(--note-accent-color, #70826e) 10%, var(--note-background-color, #fff));
+  border-color: color-mix(in srgb, var(--note-accent-color, #70826e) 18%, var(--note-background-color, #fff));
 }
 
 .pin-button.is-pinned svg {
-  fill: #fff;
+  fill: none;
 }
 
 .pin-button.is-pinned:hover:not(:disabled) {
-  color: #fff;
-  background: #34483a;
-  border-color: #293b30;
+  color: var(--note-text-color, #363a34);
+  background: color-mix(in srgb, var(--note-accent-color, #70826e) 16%, var(--note-background-color, #fff));
+  border-color: color-mix(in srgb, var(--note-accent-color, #70826e) 28%, var(--note-background-color, #fff));
 }
 
 .delete-button:hover:not(:disabled) {
@@ -954,14 +954,14 @@ textarea:focus-visible {
 .editor-stage {
   display: flex;
   width: min(960px, 100%);
-  height: min(850px, calc(100dvh - 48px));
+  height: 100%;
   min-height: 0;
-  max-height: calc(100dvh - 24px);
+  max-height: 100%;
   flex: 0 1 auto;
   flex-direction: column;
   overflow: hidden;
-  background: #fff;
-  border: 1px solid #e7e7e1;
+  background: var(--note-background-color, #fff);
+  border: 1px solid var(--note-border-color, #e7e7e1);
   border-radius: 14px;
   box-shadow: 0 20px 60px rgb(27 32 27 / 24%);
 }
@@ -973,15 +973,55 @@ textarea:focus-visible {
   align-items: center;
   gap: 12px;
   padding: 10px 18px;
-  background: #fff;
-  border-bottom: 1px solid #e9e8e3;
+  background: var(--note-background-color, #fff);
+  border-top: 1px solid var(--note-border-color, #e9e8e3);
+}
+
+.note-modal-header .nav-settings-button:not(:hover),
+.note-modal-header .back-button:not(:hover),
+.note-modal-header .tool-button:not(.is-pinned):not(:hover) {
+  color: var(--note-muted-text-color, #72766e);
+}
+
+.note-modal-header .nav-settings-button:hover:not(:disabled),
+.note-modal-header .back-button:hover,
+.note-modal-header .tool-button:hover:not(:disabled):not(.is-pinned):not(.delete-button) {
+  color: var(--note-text-color, #363a34);
+  background: color-mix(in srgb, var(--note-text-color, #363a34) 8%, var(--note-background-color, #fff));
+  border-color: var(--note-border-color, #e3e8e1);
 }
 
 .note-modal-header .note-navbar-actions {
-  width: 100%;
-  justify-content: space-between;
+  width: auto;
+  justify-content: flex-end;
   gap: 12px;
   margin-left: 0;
+}
+
+.note-modal-header .back-button {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  margin-left: auto;
+  padding: 0;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 8px;
+}
+
+.note-modal-header .back-button svg {
+  width: 20px;
+  height: 20px;
+}
+
+.note-modal-header .nav-settings-button {
+  width: 40px;
+  height: 40px;
+}
+
+.note-modal-header .editor-actions {
+  gap: 8px;
 }
 
 .editor-stage > .note-format-toolbar {
@@ -991,8 +1031,8 @@ textarea:focus-visible {
   margin: 0;
   padding: 7px 10px;
   overflow-x: auto;
-  background: #fff;
-  border-bottom: 1px solid #e9e8e3;
+  background: var(--note-background-color, #fff);
+  border-bottom: 1px solid var(--note-border-color, #e9e8e3);
 }
 
 .editor-content {
@@ -1005,7 +1045,7 @@ textarea:focus-visible {
   align-self: center;
   margin: 0;
   padding: 4px 0;
-  background: #fff;
+  background: var(--note-background-color, #fff);
 }
 
 .note-meta {
@@ -1014,12 +1054,15 @@ textarea:focus-visible {
   gap: 9px;
   min-height: 19px;
   margin-bottom: 13px;
-  color: #9a9c95;
+  color: var(--note-muted-text-color, #9a9c95);
   font-size: 16px;
   font-variant-numeric: tabular-nums;
 }
 
 .note-format-toolbar {
+  position: sticky;
+  z-index: 5;
+  top: 0;
   display: flex;
   min-height: 38px;
   flex: 0 0 auto;
@@ -1046,10 +1089,20 @@ textarea:focus-visible {
   transition: background 130ms ease, border-color 130ms ease, color 130ms ease;
 }
 
+.editor-stage .note-format-button {
+  color: var(--note-muted-text-color, #666a62);
+}
+
 .note-format-button:hover {
   color: #354a39;
   background: #f1f3ef;
   border-color: #e3e8e1;
+}
+
+.editor-stage .note-format-button:hover {
+  color: var(--note-text-color, #354a39);
+  background: color-mix(in srgb, var(--note-text-color, #354a39) 8%, var(--note-background-color, #fff));
+  border-color: var(--note-border-color, #e3e8e1);
 }
 
 .note-format-button em,
@@ -1071,7 +1124,7 @@ textarea:focus-visible {
   width: 1px;
   height: 19px;
   margin: 0 3px;
-  background: #e8e8e2;
+  background: var(--note-border-color, #e8e8e2);
 }
 
 .markdown-workspace {
@@ -1080,8 +1133,8 @@ textarea:focus-visible {
   min-height: 0;
   flex: 1;
   overflow: hidden;
-  background: #fff;
-  border: 1px solid #e9e8e3;
+  background: var(--note-background-color, #fff);
+  border: 1px solid var(--note-border-color, #e9e8e3);
   border-radius: 11px;
 }
 
@@ -1131,6 +1184,18 @@ textarea:focus-visible {
 .markdown-source-line {
   display: block;
   min-height: 1.8em;
+}
+
+.markdown-source-divider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.markdown-source-divider-line {
+  min-width: 24px;
+  flex: 1;
+  border-top: 1px solid var(--note-border-color, #e9e8e3);
 }
 
 .markdown-source-align-left {
@@ -1238,14 +1303,33 @@ textarea:focus-visible {
 .markdown-source-list-marker-unordered::before {
   position: absolute;
   inset: 0;
+  right: auto;
   display: grid;
+  width: 1.45em;
   color: var(--note-accent-color, #70826e);
-  content: "•";
-  place-items: center;
+  content: "●";
+  font-size: 0.75em;
+  place-items: center start;
+  padding-left: 0.15em;
+}
+
+.markdown-source-list-marker-unordered[data-list-icon="1"]::before {
+  content: "▲";
+}
+
+.markdown-source-list-marker-unordered[data-list-icon="2"]::before {
+  content: "★";
+  font-size: 1em;
 }
 
 .markdown-source-list-marker-ordered {
   min-width: 2em;
+}
+
+.markdown-source-list-indent {
+  display: inline-block;
+  color: transparent;
+  white-space: pre;
 }
 
 .markdown-source-link {
@@ -1292,7 +1376,7 @@ textarea:focus-visible {
 }
 
 .meta-separator {
-  color: #c4c5c0;
+  color: var(--note-subtle-text-color, #c4c5c0);
 }
 
 .note-body-editor::selection,
@@ -1307,20 +1391,20 @@ textarea:focus-visible {
   flex: 0 0 auto;
   align-items: center;
   gap: 7px;
-  color: #a0a19b;
-  border-top: 1px solid #f1f0ed;
+  color: var(--note-subtle-text-color, #a0a19b);
+  border-top: 1px solid var(--note-border-color, #f1f0ed);
   font-size: 16px;
 }
 
 .footer-shortcut {
   margin-left: auto;
-  color: #85877f;
+  color: var(--note-muted-text-color, #85877f);
   font-size: 16px;
   font-weight: 600;
 }
 
 .footer-shortcut span {
-  color: #a0a19b;
+  color: var(--note-subtle-text-color, #a0a19b);
   font-weight: 450;
 }
 
@@ -2008,7 +2092,7 @@ textarea:focus-visible {
     width: 100%;
     margin: 0;
     padding: 4px 2px;
-    border: 2px solid #eee;
+    border: 2px solid var(--note-border-color, #eee);
   }
 
   .note-meta {
@@ -2017,7 +2101,9 @@ textarea:focus-visible {
   }
 
   .note-format-toolbar {
-    position: static;
+    position: sticky;
+    z-index: 5;
+    top: 0;
     width: 100%;
     min-height: 0;
     flex-wrap: nowrap;
@@ -2025,8 +2111,8 @@ textarea:focus-visible {
     margin: 0;
     padding: 7px;
     overflow-x: auto;
-    background: #fff;
-    border-bottom: 1px solid #e9e8e3;
+    background: var(--note-background-color, #fff);
+    border-bottom: 1px solid var(--note-border-color, #e9e8e3);
   }
 
   .note-format-button {
