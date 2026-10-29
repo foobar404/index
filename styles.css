@@ -1134,7 +1134,6 @@ textarea:focus-visible {
   flex: 1;
   overflow: hidden;
   background: var(--note-background-color, #fff);
-  border: 1px solid var(--note-border-color, #e9e8e3);
   border-radius: 11px;
 }
 
@@ -1154,6 +1153,8 @@ textarea:focus-visible {
   min-width: 0;
   min-height: 0;
   overflow: auto;
+  scrollbar-color: #d8d9d3 transparent;
+  scrollbar-width: thin;
   padding: 19px 21px 24px;
   color: var(--note-text-color, #40463f);
   caret-color: var(--note-text-color, #40463f);
@@ -1169,6 +1170,25 @@ textarea:focus-visible {
   overflow-wrap: break-word;
   user-select: text;
   -webkit-user-select: text;
+}
+
+.note-body-editor::-webkit-scrollbar {
+  width: 8px;
+}
+
+.note-body-editor::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.note-body-editor::-webkit-scrollbar-thumb {
+  background: #d8d9d3;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background-clip: padding-box;
+}
+
+.note-body-editor::-webkit-scrollbar-thumb:hover {
+  background-color: #c5c7bf;
 }
 
 .note-body-editor:empty::before {
@@ -2138,7 +2158,6 @@ textarea:focus-visible {
 
   .markdown-source-pane {
     min-height: 0;
-    border: 1px solid #e9e8e3;
     border-radius: 9px;
   }
 

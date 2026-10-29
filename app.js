@@ -1558,7 +1558,6 @@ function closeNoteEditor() {
   }
   appShell.dataset.view = "list";
   render();
-  searchInput.focus({ preventScroll: true });
 }
 
 function reorderNote(sourceId, targetId, position = "before") {
